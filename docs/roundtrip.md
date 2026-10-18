@@ -8,7 +8,8 @@
 
 Сначала выполните [подготовку Python и исходных весов](setup.md).
 Все блоки ниже выполняются из корня репозитория в одной Bash-сессии.
-Замените только `INPUT` своим путём; демофайл не включён в Git.
+Замените только `INPUT` своим путём; небольшой сгенерированный демотрек
+включён в `client_android/assets/audio/demo.mp3`.
 
 ```bash
 source encoder_service/.venv/bin/activate
@@ -27,7 +28,7 @@ mkdir -p "$RUN_DIR"
 Значение `CUDA_VISIBLE_DEVICES=-1` задавайте после `source env.sh`.
 Остальные три переменные ограничивают число CPU-потоков для этого запуска.
 Для проверки на существующем локальном демотреке можно задать
-`INPUT="$PWD/media/client_android/demo.mp3"`.
+`INPUT="$PWD/client_android/assets/audio/demo.mp3"`.
 
 ## 2. Закодировать и получить контрольный WAV Python
 

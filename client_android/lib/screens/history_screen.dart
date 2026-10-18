@@ -8,6 +8,7 @@ class RunHistoryEntry {
     required this.networkPreset,
     required this.modelPreset,
     required this.threads,
+    required this.cores,
     required this.elapsed,
     required this.startupBytes,
   });
@@ -16,6 +17,7 @@ class RunHistoryEntry {
   final NetworkPreset networkPreset;
   final NeuralModelPreset modelPreset;
   final int threads;
+  final int cores;
   final Duration elapsed;
   final int startupBytes;
 }
@@ -137,7 +139,7 @@ class HistoryScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '${run.mode.label.toUpperCase()} • ${kNetworkProfiles[run.networkPreset]!.label} • ${kNeuralModels[run.modelPreset]!.label.toUpperCase()} • T${run.threads}',
+            '${run.mode.label.toUpperCase()} • ${kNetworkProfiles[run.networkPreset]!.label} • ${run.mode == DemoMode.neuralSage ? 'SAGE R128' : kNeuralModels[run.modelPreset]!.label.toUpperCase()} • T${run.threads} • C${run.cores}',
             style: TextStyle(
               color: muted,
               fontFamily: 'monospace',

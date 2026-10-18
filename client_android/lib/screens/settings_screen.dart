@@ -8,12 +8,14 @@ class DemoSettingsResult {
     required this.networkPreset,
     required this.modelPreset,
     required this.threads,
+    required this.cores,
   });
 
   final DemoMode mode;
   final NetworkPreset networkPreset;
   final NeuralModelPreset modelPreset;
   final int threads;
+  final int cores;
 }
 
 class DemoSettingsScreen extends StatefulWidget {
@@ -23,12 +25,14 @@ class DemoSettingsScreen extends StatefulWidget {
     required this.initialNetworkPreset,
     required this.initialModelPreset,
     required this.initialThreads,
+    required this.initialCores,
   });
 
   final DemoMode initialMode;
   final NetworkPreset initialNetworkPreset;
   final NeuralModelPreset initialModelPreset;
   final int initialThreads;
+  final int initialCores;
 
   @override
   State<DemoSettingsScreen> createState() => _DemoSettingsScreenState();
@@ -39,6 +43,7 @@ class _DemoSettingsScreenState extends State<DemoSettingsScreen> {
   late NetworkPreset _networkPreset;
   late NeuralModelPreset _modelPreset;
   late int _threads;
+  late int _cores;
 
   @override
   void initState() {
@@ -47,6 +52,7 @@ class _DemoSettingsScreenState extends State<DemoSettingsScreen> {
     _networkPreset = widget.initialNetworkPreset;
     _modelPreset = widget.initialModelPreset;
     _threads = widget.initialThreads;
+    _cores = widget.initialCores;
   }
 
   @override
@@ -60,134 +66,160 @@ class _DemoSettingsScreenState extends State<DemoSettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('SETTINGS'), centerTitle: false),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _SectionLabel('MODE', color: fg),
-            const SizedBox(height: 8),
-            _OptionWrap<DemoMode>(
-              values: DemoMode.values,
-              selected: _mode,
-              labelBuilder: (mode) => mode == DemoMode.mp3 ? 'MP3' : 'NEURAL',
-              onSelected: (mode) => setState(() => _mode = mode),
-              borderColor: fg,
-              selectedBackground: selectedBg,
-              selectedForeground: selectedFg,
-              unselectedBackground: unselectedBg,
-              unselectedForeground: fg,
-            ),
-            const SizedBox(height: 20),
-            _SectionLabel('NETWORK', color: fg),
-            const SizedBox(height: 8),
-            _OptionWrap<NetworkPreset>(
-              values: NetworkPreset.values,
-              selected: _networkPreset,
-              labelBuilder: (preset) {
-                switch (preset) {
-                  case NetworkPreset.stuttgartPoor:
-                    return 'STUTTGART POOR';
-                  case NetworkPreset.stuttgartTypical:
-                    return 'STUTTGART TYPICAL';
-                  case NetworkPreset.stuttgartGood:
-                    return 'STUTTGART GOOD';
-                  case NetworkPreset.currentConnection:
-                    return 'CURRENT CONNECTION';
-                }
-              },
-              onSelected: (preset) => setState(() => _networkPreset = preset),
-              borderColor: fg,
-              selectedBackground: selectedBg,
-              selectedForeground: selectedFg,
-              unselectedBackground: unselectedBg,
-              unselectedForeground: fg,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Poor      - 3G-like / weak mobile\n'
-              'Typical   - typical 4G\n'
-              'Good      - good 5G\n'
-              'Current   - live measured',
-              style: TextStyle(
-                color: muted,
-                fontFamily: 'monospace',
-                fontSize: 10,
-                height: 1.6,
-              ),
-            ),
-            const SizedBox(height: 20),
-            _SectionLabel('MODEL', color: fg),
-            const SizedBox(height: 8),
-            _OptionWrap<NeuralModelPreset>(
-              values: NeuralModelPreset.values,
-              selected: _modelPreset,
-              labelBuilder: (preset) =>
-                  kNeuralModels[preset]!.label.toUpperCase(),
-              onSelected: (preset) => setState(() => _modelPreset = preset),
-              borderColor: fg,
-              selectedBackground: selectedBg,
-              selectedForeground: selectedFg,
-              unselectedBackground: unselectedBg,
-              unselectedForeground: fg,
-            ),
-            const SizedBox(height: 20),
-            _SectionLabel('THREADS', color: fg),
-            const SizedBox(height: 8),
-            _OptionWrap<int>(
-              values: const [1, 2, 4, 6, 8],
-              selected: _threads,
-              labelBuilder: (value) => '$value',
-              onSelected: (value) => setState(() => _threads = value),
-              borderColor: fg,
-              selectedBackground: selectedBg,
-              selectedForeground: selectedFg,
-              unselectedBackground: unselectedBg,
-              unselectedForeground: fg,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Pixel demo preset editor\nfor slide-ready A/B launches',
-              style: TextStyle(
-                color: muted,
-                fontFamily: 'monospace',
-                fontSize: 11,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: selectedFg,
-                  backgroundColor: selectedBg,
-                  side: BorderSide(color: fg, width: 2),
-                  shape: const RoundedRectangleBorder(),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop(
-                    DemoSettingsResult(
-                      mode: _mode,
-                      networkPreset: _networkPreset,
-                      modelPreset: _modelPreset,
-                      threads: _threads,
-                    ),
-                  );
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 240),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionLabel('MODE', color: fg),
+              const SizedBox(height: 8),
+              _OptionWrap<DemoMode>(
+                values: DemoMode.values,
+                selected: _mode,
+                labelBuilder: (mode) {
+                  switch (mode) {
+                    case DemoMode.mp3:
+                      return 'MP3';
+                    case DemoMode.neuralSpect:
+                      return 'NEURAL SPECT';
+                    case DemoMode.neuralSage:
+                      return 'NEURAL SAGE';
+                  }
                 },
-                child: const Text(
-                  'APPLY',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.4,
+                onSelected: (mode) => setState(() => _mode = mode),
+                borderColor: fg,
+                selectedBackground: selectedBg,
+                selectedForeground: selectedFg,
+                unselectedBackground: unselectedBg,
+                unselectedForeground: fg,
+              ),
+              const SizedBox(height: 20),
+              _SectionLabel('NETWORK', color: fg),
+              const SizedBox(height: 8),
+              _OptionWrap<NetworkPreset>(
+                values: NetworkPreset.values,
+                selected: _networkPreset,
+                labelBuilder: (preset) {
+                  switch (preset) {
+                    case NetworkPreset.stuttgartPoor:
+                      return 'STUTTGART POOR';
+                    case NetworkPreset.stuttgartTypical:
+                      return 'STUTTGART TYPICAL';
+                    case NetworkPreset.stuttgartGood:
+                      return 'STUTTGART GOOD';
+                    case NetworkPreset.currentConnection:
+                      return 'CURRENT CONNECTION';
+                  }
+                },
+                onSelected: (preset) => setState(() => _networkPreset = preset),
+                borderColor: fg,
+                selectedBackground: selectedBg,
+                selectedForeground: selectedFg,
+                unselectedBackground: unselectedBg,
+                unselectedForeground: fg,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Poor      - 3G-like / weak mobile\n'
+                'Typical   - typical 4G\n'
+                'Good      - good 5G\n'
+                'Current   - live measured',
+                style: TextStyle(
+                  color: muted,
+                  fontFamily: 'monospace',
+                  fontSize: 10,
+                  height: 1.6,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _SectionLabel('MODEL', color: fg),
+              const SizedBox(height: 8),
+              _OptionWrap<NeuralModelPreset>(
+                values: NeuralModelPreset.values,
+                selected: _modelPreset,
+                labelBuilder: (preset) =>
+                    kNeuralModels[preset]!.label.toUpperCase(),
+                onSelected: (preset) => setState(() => _modelPreset = preset),
+                borderColor: fg,
+                selectedBackground: selectedBg,
+                selectedForeground: selectedFg,
+                unselectedBackground: unselectedBg,
+                unselectedForeground: fg,
+              ),
+              const SizedBox(height: 20),
+              _SectionLabel('THREADS', color: fg),
+              const SizedBox(height: 8),
+              _OptionWrap<int>(
+                values: const [1, 2, 4, 6, 8],
+                selected: _threads,
+                labelBuilder: (value) => '$value',
+                onSelected: (value) => setState(() => _threads = value),
+                borderColor: fg,
+                selectedBackground: selectedBg,
+                selectedForeground: selectedFg,
+                unselectedBackground: unselectedBg,
+                unselectedForeground: fg,
+              ),
+              const SizedBox(height: 20),
+              _SectionLabel('CORES', color: fg),
+              const SizedBox(height: 8),
+              _OptionWrap<int>(
+                values: const [1, 2, 4, 6, 8],
+                selected: _cores,
+                labelBuilder: (value) => '$value',
+                onSelected: (value) => setState(() => _cores = value),
+                borderColor: fg,
+                selectedBackground: selectedBg,
+                selectedForeground: selectedFg,
+                unselectedBackground: unselectedBg,
+                unselectedForeground: fg,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Pixel demo preset editor\nfor slide-ready A/B launches',
+                style: TextStyle(
+                  color: muted,
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: selectedFg,
+                    backgroundColor: selectedBg,
+                    side: BorderSide(color: fg, width: 2),
+                    shape: const RoundedRectangleBorder(),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop(
+                      DemoSettingsResult(
+                        mode: _mode,
+                        networkPreset: _networkPreset,
+                        modelPreset: _modelPreset,
+                        threads: _threads,
+                        cores: _cores,
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    'APPLY',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.4,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

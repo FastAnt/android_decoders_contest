@@ -1,12 +1,14 @@
-enum DemoMode { mp3, neural }
+enum DemoMode { mp3, neuralSpect, neuralSage }
 
 extension DemoModeLabel on DemoMode {
   String get label {
     switch (this) {
       case DemoMode.mp3:
         return 'MP3';
-      case DemoMode.neural:
-        return 'Neural Codec';
+      case DemoMode.neuralSpect:
+        return 'NEURAL SPECT';
+      case DemoMode.neuralSage:
+        return 'NEURAL SAGE';
     }
   }
 }
@@ -139,7 +141,8 @@ const Map<NeuralModelPreset, NeuralModelConfig> kNeuralModels = {
 
 class DemoDefaults {
   static const network = NetworkPreset.stuttgartTypical;
-  static const mode = DemoMode.neural;
+  static const mode = DemoMode.neuralSpect;
   static const model = NeuralModelPreset.f25Fp32;
   static const threads = 6;
+  static const cores = 8;
 }

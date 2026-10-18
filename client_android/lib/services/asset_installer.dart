@@ -16,6 +16,9 @@ class InstalledAssets {
     required this.sstSizeBytes,
     required this.sstDurationSeconds,
     required this.mp3SizeBytes,
+    required this.sageModelPath,
+    required this.sagePath,
+    required this.sageSizeBytes,
   });
 
   final Directory rootDirectory;
@@ -26,6 +29,9 @@ class InstalledAssets {
   final int sstSizeBytes;
   final double sstDurationSeconds;
   final int mp3SizeBytes;
+  final String sageModelPath;
+  final String sagePath;
+  final int sageSizeBytes;
 
   int get neuralFirstSecondBytes => (sstSizeBytes / sstDurationSeconds).ceil();
 }
@@ -47,9 +53,15 @@ class AssetInstaller {
     'assets/spectrostream/rvq_codebooks.f32': 'rvq_codebooks.f32',
     'assets/spectrostream/istft_window_f960.f32': 'istft_window_f960.f32',
     'assets/spectrostream/demo.sst': 'demo.sst',
+    'assets/sage/dec_w8a8.tflite': 'sage_dec_w8a8.tflite',
+    'assets/sage/demo.sage': 'demo.sage',
   };
 
-  static const double _sstDurationSeconds = 162.075;
+  static const double _sstDurationSeconds = 133.607625;
+
+  /// Bump when a bundled model or demo file changes.  The install state is
+  /// keyed by this revision so an app update cannot keep an older SST/track.
+  static const int _assetRevision = 3;
 
   Future<InstalledAssets> ensureInstalled() async {
     final supportDir = await getApplicationSupportDirectory();
@@ -59,12 +71,11 @@ class AssetInstaller {
     }
 
     final stateFile = File('${targetDir.path}/install_state.json');
-    final stateSizes = await _readStateSizes(stateFile);
+    final state = await _readState(stateFile);
+    final stateSizes = state.sizes;
 
-    bool isValid = true;
-    if (stateSizes.isEmpty) {
-      isValid = false;
-    } else {
+    bool isValid = state.revision == _assetRevision && stateSizes.isNotEmpty;
+    if (isValid) {
       for (final entry in _installFiles.entries) {
         final filename = entry.value;
         final expectedSize = stateSizes[filename];
@@ -102,7 +113,7 @@ class AssetInstaller {
         installedSizes[filename] = bytes.length;
       }
       await stateFile.writeAsString(
-        jsonEncode({'sizes': installedSizes}),
+        jsonEncode({'revision': _assetRevision, 'sizes': installedSizes}),
         flush: true,
       );
     }
@@ -129,23 +140,35 @@ class AssetInstaller {
       sstSizeBytes: installedSizes['demo.sst'] ?? 0,
       sstDurationSeconds: _sstDurationSeconds,
       mp3SizeBytes: mp3SizeBytes,
+      sageModelPath: '${targetDir.path}/sage_dec_w8a8.tflite',
+      sagePath: '${targetDir.path}/demo.sage',
+      sageSizeBytes: installedSizes['demo.sage'] ?? 0,
     );
   }
 
-  Future<Map<String, int>> _readStateSizes(File stateFile) async {
+  Future<_InstallState> _readState(File stateFile) async {
     if (!await stateFile.exists()) {
-      return {};
+      return const _InstallState(0, {});
     }
     try {
       final decoded =
           jsonDecode(await stateFile.readAsString()) as Map<String, dynamic>;
+      final revision = (decoded['revision'] as num?)?.toInt() ?? 0;
       final raw = decoded['sizes'];
       if (raw is! Map<String, dynamic>) {
-        return {};
+        return _InstallState(revision, const {});
       }
-      return raw.map((key, value) => MapEntry(key, value as int));
+      final sizes = raw.map((key, value) => MapEntry(key, value as int));
+      return _InstallState(revision, sizes);
     } catch (_) {
-      return {};
+      return const _InstallState(0, {});
     }
   }
+}
+
+class _InstallState {
+  const _InstallState(this.revision, this.sizes);
+
+  final int revision;
+  final Map<String, int> sizes;
 }

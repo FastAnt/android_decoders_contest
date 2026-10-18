@@ -1,8 +1,9 @@
 # Neural Codecs Android Client
 
-Flutter-приложение для сравнения времени запуска MP3 и SpectroStream.
-Нейронное аудио декодируется через `dart:ffi` и C++ runtime; в приложении
-доступны сетевые профили, выбор модели и числа потоков CPU.
+Flutter-приложение для сравнения времени запуска MP3, SpectroStream и SAGE.
+SpectroStream декодируется через `dart:ffi` и C++ runtime, SAGE — через
+Kotlin-мост к LiteRT; в приложении доступны сетевые профили, выбор модели
+SpectroStream и числа потоков CPU.
 
 ## Подготовка
 
@@ -13,39 +14,53 @@ NDK и устройство или эмулятор `arm64-v8a` с Android API 2
 обновить зависимости, закреплённые самим Flutter; такие изменения проверяйте
 и фиксируйте отдельно от изменения документации.
 
-Исходники Flutter/Android, Gradle Wrapper и перечисленные ниже TFLite/F32
-assets включены в Git. Нативные `.so` и демотрек остаются локальными;
-перед запуском подготовьте их:
+Исходники Flutter/Android и Gradle Wrapper хранятся в Git. Модели и нативные
+`.so` нужно подготовить перед сборкой:
 
-- `../media/client_android/demo.mp3` и `demo.sst` — демотрек и его токены.
-  Файлы в `assets/audio/demo.mp3` и `assets/spectrostream/demo.sst`
-  являются относительными символическими ссылками на эти медиа.
+- `assets/audio/demo.mp3`, `assets/spectrostream/demo.sst` и
+  `assets/sage/demo.sage` — небольшой сгенерированный демотрек, уже включён
+  в репозиторий. Все три режима используют один и тот же трек.
 - `assets/spectrostream/` — `spectrostream_decoder_core_fp32_f25.tflite`,
   `spectrostream_decoder_core_fp32_f75.tflite`,
   `spectrostream_decoder_core_fp16_f25.tflite`,
   `spectrostream_decoder_core_fp16_f75.tflite`,
   `spectrostream_decoder_core_fp16_f100.tflite`, `rvq_codebooks.f32`
-  и `istft_window_f960.f32`. Эти файлы уже включены в Git,
-  а канонический набор также хранится в `../decoder_cpp/models/`.
+  и `istft_window_f960.f32`. Эти файлы **не включены в Git**: экспортируйте
+  их по [../docs/model-export.md](../docs/model-export.md) и скопируйте сюда.
+- `assets/sage/` — `dec_w8a8.tflite` (SAGE rung 128, int8). Модель также
+  **не включена в Git**; ссылка на исходный SAGE-проект и порядок подготовки —
+  в [assets/sage/README.md](assets/sage/README.md). `demo.sage` уже включён.
+  SAGE использует `com.google.ai.edge.litert:litert:2.3.0` и Kotlin 2.4.
 - `android/app/src/main/jniLibs/arm64-v8a/` — `libspectrostream_decoder.so`
   из Android-сборки декодера и `libc++_shared.so` из соответствующего NDK.
 
 Сборка нативного runtime описана в [../decoder_cpp/README.md](../decoder_cpp/README.md).
 Иконки Android хранятся в `android/app/src/main/res/`.
 
+## THREADS и CORES
+
+`THREADS` — число worker-потоков TFLite/XNNPACK/LiteRT. Это не число ядер:
+потоки планируются ОС на любых доступных CPU.
+
+`CORES` — ограничение affinity для потока декодера и созданных им worker-потоков.
+Выбираются старшие по номеру CPU (обычно производительные ядра); `8` означает
+«все доступные CPU». Это не эксклюзивное резервирование ядер: Android и другие
+потоки приложения по-прежнему могут использовать эти CPU. Обычно имеет смысл
+`THREADS <= CORES`; при большем числе потоков они делят одни и те же ядра.
+
 ## Если используется другой трек
 
 Приложение демонстрирует заранее подготовленный трек, а не произвольный
-файловый плеер. Сначала выполните [round-trip](../docs/roundtrip.md),
-затем поместите соответствующие MP3 и SST в `../media/client_android/`
-под именами `demo.mp3` и `demo.sst`. Если исходник не MP3, подготовьте MP3
-через FFmpeg и кодируйте именно эту версию для сравнения одного материала.
+файловый плеер. Демотрек уже лежит в `assets/audio/demo.mp3`,
+`assets/spectrostream/demo.sst` и `assets/sage/demo.sage`. Для своего трека
+подготовьте MP3, SpectroStream SST и SAGE-контейнер и положите их с этими
+именами; все три режима должны использовать один и тот же исходник.
 
-В `lib/services/asset_installer.dart` длительность SST сейчас задана
-константой `_sstDurationSeconds = 162.075`; для своего демотрека её нужно
-согласовать с `metadata.json`. Иначе расчёт передачи первого блока будет
-неверным. Assets на устройстве кешируются: при замене демонабора очистите
-данные приложения или переустановите его, чтобы исключить старые файлы.
+В `lib/services/asset_installer.dart` длительность SST задана константой
+`_sstDurationSeconds = 133.607625`; для своего демотрека её нужно согласовать
+с `metadata.json`. При замене демонабора увеличьте `_assetRevision`, иначе
+устройство может сохранить старые assets. Дополнительно очистите данные
+приложения или переустановите его.
 
 ## Запуск
 
@@ -58,7 +73,7 @@ flutter test
 flutter run
 ```
 
-Убедитесь, что при переносе проекта сохраняются символические ссылки.
+Модели для сборки нужно подготовить заранее; см. раздел «Подготовка».
 Общая структура проекта и расположение данных описаны в [../README.md](../README.md).
 Подробности реализации и результаты экспериментов — в [client_report.md](client_report.md).
 

@@ -55,6 +55,7 @@ add_library(spectrostream_core STATIC
     src/decoder.cpp
     src/wav_writer.cpp
     src/decoder_c_api.cpp
+    src/cpu_affinity.cpp
 )
 
 target_include_directories(spectrostream_core

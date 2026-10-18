@@ -18,7 +18,7 @@ struct Decoder::Impl {
 
     Impl(const DecoderConfig& config)
         : dequantizer(config.codebooks_path),
-          runner(config.model_path, LiteRtConfig{config.num_threads, config.use_xnnpack, config.use_gpu}),
+          runner(config.model_path, LiteRtConfig{config.num_threads, config.num_cores, config.use_xnnpack, config.use_gpu}),
           istft(config.window_path) {}
 };
 

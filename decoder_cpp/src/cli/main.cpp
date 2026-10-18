@@ -17,6 +17,7 @@ struct Args {
     std::string input_path;
     std::string output_path = "reconstructed_cpp.wav";
     int threads = 4;
+    int cores = 0;
     bool inspect_only = false;
     bool use_gpu = false;
     int benchmark_runs = 0;
@@ -33,6 +34,7 @@ void print_usage(const char* prog) {
         "  --input <path>       Input .sst file (required)\n"
         "  --output <path>      Output .wav file (default: reconstructed_cpp.wav)\n"
         "  --threads <N>        CPU threads (default: 4)\n"
+        "  --cores <N>          CPU affinity limit (default: all)\n"
         "  --gpu                Use GPU delegate (requires build with ENABLE_GPU_DELEGATE)\n"
         "  --benchmark <N>      Run decode N times and report avg/min/max RTF\n"
         "  --inspect            Only inspect .sst, do not decode\n"
@@ -58,6 +60,8 @@ bool parse_args(int argc, char* argv[], Args& args) {
             args.output_path = argv[++i];
         } else if (arg == "--threads" && i + 1 < argc) {
             args.threads = std::atoi(argv[++i]);
+        } else if (arg == "--cores" && i + 1 < argc) {
+            args.cores = std::atoi(argv[++i]);
         } else if (arg == "--gpu") {
             args.use_gpu = true;
         } else if (arg == "--benchmark" && i + 1 < argc) {
@@ -135,6 +139,7 @@ int main(int argc, char* argv[]) {
         std::printf("Input:         %s\n", args.input_path.c_str());
         std::printf("Output:        %s\n", args.output_path.c_str());
         std::printf("Threads:       %d\n", args.threads);
+        std::printf("Cores:         %d\n", args.cores > 0 ? args.cores : 0);
         std::printf("\n");
 
         auto t_load = std::chrono::high_resolution_clock::now();
@@ -144,6 +149,7 @@ int main(int argc, char* argv[]) {
         config.codebooks_path = args.codebooks_path;
         config.window_path = args.window_path;
         config.num_threads = args.threads;
+        config.num_cores = args.cores;
         config.use_xnnpack = !args.use_gpu;
         config.use_gpu = args.use_gpu;
 

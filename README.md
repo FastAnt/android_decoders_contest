@@ -15,7 +15,6 @@ Flutter-клиентом на Android. Рабочий формат аудио �
 [Результаты проверки](docs/validation.md) отделяют выполненные сценарии
 от шагов, которые пока не проверены с чистого клона.
 Для агентов также есть краткая точка входа [AGENTS.md](AGENTS.md).
-Перенос истории и кода на флешку описан в [docs/transfer.md](docs/transfer.md).
 
 ## Что умеет проект
 
@@ -48,23 +47,27 @@ q16/q32 в метаданных — оценки передачи, а не от�
 
 ## Какие файлы есть в Git
 
-В репозитории сохраняются исходники, конфигурация, документация, тесты
-и иконки приложения. Также включены исходные SavedModels SpectroStream
-(encoder, decoder, quantizer), шесть core-моделей TFLite f25/f75/f100
-в FP32/FP16, codebooks и окно iSTFT. Нужные Flutter assets включены
-в `client_android/assets/spectrostream/`; одинаковые файлы Git хранит
-как один объект. Контрольные суммы — `docs/source-model.sha256`
-и `docs/runtime-assets.sha256`.
+В репозитории сохраняются исходники, конфигурация, документация, тесты,
+иконки приложения и небольшой сгенерированный демотрек:
+`client_android/assets/audio/demo.mp3`,
+`client_android/assets/spectrostream/demo.sst` и
+`client_android/assets/sage/demo.sage`.
+
+Бинарные веса и экспортированные модели **не хранятся в Git**: исходные
+SavedModels SpectroStream скачиваются с Hugging Face, а core-модели TFLite,
+codebooks и окно iSTFT экспортируются по
+[инструкции](docs/model-export.md) либо скачиваются отдельно. Ссылки и
+контрольные суммы — в [models/README.md](models/README.md),
+[docs/source-model.sha256](docs/source-model.sha256) и
+[docs/runtime-assets.sha256](docs/runtime-assets.sha256).
 
 Медиа, внешние checkout, окружения, сборки и готовые нативные библиотеки
-исключены через `.gitignore`.
-Для кодирования в чистом клоне нужно установить зависимости, а для
-Android — также собрать нативный runtime и подготовить демотрек.
-Повторная загрузка или конвертация включённых весов не требуется;
-порядок действий описан в [подготовке](docs/setup.md).
+исключены через `.gitignore`. Для кодирования в чистом клоне нужно установить
+зависимости; для Android — также собрать нативный runtime и подготовить
+модели по [подготовке](docs/setup.md).
 
 ```text
-media/
+media/                      # локальные эксперименты, не в Git
 ├── images/                 # изображения
 ├── videos/                 # видео и записи экрана
 ├── presentation/           # слайды
@@ -72,17 +75,14 @@ media/
 │   ├── input/              # вход кодировщика по умолчанию
 │   ├── encoded/            # SST, metadata.json, catalog.json
 │   └── reconstructed/      # контрольные WAV Python
-├── reconstructed/
-│   ├── cpp/                # контрольные WAV Linux
-│   └── android/            # контрольные WAV Android
-└── client_android/         # demo.mp3 и demo.sst для приложения
+└── reconstructed/
+    ├── cpp/                # контрольные WAV Linux
+    └── android/            # контрольные WAV Android
 ```
 
-Каталоги новых экспериментов также создавайте внутри `media/`.
-Файлы `client_android/assets/audio/demo.mp3` и
-`client_android/assets/spectrostream/demo.sst` — относительные символические
-ссылки на `media/client_android/`. После клонирования восстановите их цели
-или подготовьте свой демотрек по [инструкции приложения](client_android/README.md).
+Демотрек для приложения лежит прямо в `client_android/assets/`; это
+сгенерированный трек, а не внешняя символическая ссылка. Каталоги новых
+экспериментов создавайте внутри `media/`.
 Иконки Android остаются в `android/app/src/main/res/`.
 
 ## Отчёты экспериментов

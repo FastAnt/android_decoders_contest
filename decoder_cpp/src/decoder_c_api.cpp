@@ -19,11 +19,12 @@ struct DecoderStreamHandle {
 
 extern "C" {
 
-SS_EXPORT SpectroStreamDecoderHandle spectrostream_decoder_create(
+SS_EXPORT SpectroStreamDecoderHandle spectrostream_decoder_create_ex(
     const char* model_path,
     const char* codebooks_path,
     const char* window_path,
-    int num_threads) {
+    int num_threads,
+    int num_cores) {
 
     auto* handle = new (std::nothrow) DecoderHandle{};
     if (!handle) return nullptr;
@@ -34,6 +35,7 @@ SS_EXPORT SpectroStreamDecoderHandle spectrostream_decoder_create(
         config.codebooks_path = codebooks_path;
         config.window_path = window_path;
         config.num_threads = num_threads > 0 ? num_threads : 4;
+        config.num_cores = num_cores > 0 ? num_cores : 0;
         config.use_xnnpack = true;
 
         handle->decoder = new spectrostream::Decoder(config);
@@ -43,6 +45,15 @@ SS_EXPORT SpectroStreamDecoderHandle spectrostream_decoder_create(
         handle->decoder = nullptr;
         return static_cast<SpectroStreamDecoderHandle>(handle);
     }
+}
+
+SS_EXPORT SpectroStreamDecoderHandle spectrostream_decoder_create(
+    const char* model_path,
+    const char* codebooks_path,
+    const char* window_path,
+    int num_threads) {
+    return spectrostream_decoder_create_ex(
+        model_path, codebooks_path, window_path, num_threads, 0);
 }
 
 SS_EXPORT int spectrostream_decoder_decode_file(

@@ -251,7 +251,7 @@ cp build-android-arm64/libspectrostream_decoder.so \
 ## Команды для воспроизводимой сборки
 
 ```bash
-cd <repository>/decoder_cpp
+cd decoder_cpp
 
 # 1. Убедиться что Linux build есть (нужен host flatc)
 test -f build/flatbuffers-flatc/bin/flatc || {

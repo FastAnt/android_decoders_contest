@@ -234,7 +234,7 @@ f25 FP32 (без context) — модель 136 MiB + codebooks 64 MiB ≈ 200 Mi
 ## Воспроизведение результата
 
 ```bash
-cd <repository>/decoder_cpp
+cd decoder_cpp
 
 # Build (если не собрано)
 ./android/build.sh

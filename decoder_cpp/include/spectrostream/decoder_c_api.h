@@ -29,6 +29,13 @@ SS_EXPORT SpectroStreamDecoderHandle spectrostream_decoder_create(
     const char* window_path,
     int num_threads);
 
+SS_EXPORT SpectroStreamDecoderHandle spectrostream_decoder_create_ex(
+    const char* model_path,
+    const char* codebooks_path,
+    const char* window_path,
+    int num_threads,
+    int num_cores);
+
 SS_EXPORT int spectrostream_decoder_decode_file(
     SpectroStreamDecoderHandle handle,
     const char* sst_path,

@@ -12,6 +12,7 @@ struct DecoderConfig {
     std::string codebooks_path;
     std::string window_path;
     int num_threads = 4;
+    int num_cores = 0;
     bool use_xnnpack = true;
     bool use_gpu = false;
 };

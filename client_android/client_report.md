@@ -3,7 +3,7 @@
 ## Context Snapshot
 - Date: 2026-07-12
 - Scope: Flutter demo app for startup comparison MP3 vs Neural Codec
-- Root: <repository>/client_android
+- Root: &lt;repository&gt;/client_android
 
 ## What Exists In Current App
 

@@ -1,4 +1,5 @@
 #include "spectrostream/litert_runner.h"
+#include "spectrostream/cpu_affinity.h"
 
 #include <cstring>
 #include <stdexcept>
@@ -35,6 +36,10 @@ struct LiteRtRunner::Impl {
 
 LiteRtRunner::LiteRtRunner(const std::string& model_path, LiteRtConfig config)
     : impl_(std::make_unique<Impl>()) {
+
+    // Pin the constructing thread before TFLite/XNNPACK create workers; the
+    // new pthreads inherit this affinity mask.
+    set_current_thread_affinity(config.num_cores);
 
     impl_->model = tflite::FlatBufferModel::BuildFromFile(model_path.c_str());
     if (!impl_->model) {

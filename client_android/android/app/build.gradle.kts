@@ -15,8 +15,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 
     defaultConfig {
@@ -44,4 +46,14 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // SAGE uses the LiteRT Java API (CompiledModel + TensorBuffer) alongside
+    // the C++ SpectroStream runtime. Keep the same pinned version as the
+    // reference SAGE Android decoder.
+    implementation("com.google.ai.edge.litert:litert:2.3.0") {
+        exclude(group = "com.google.android.play", module = "ai-delivery")
+        exclude(group = "com.google.android.play", module = "asset-delivery")
+    }
 }

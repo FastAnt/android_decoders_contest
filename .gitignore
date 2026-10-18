@@ -1,30 +1,24 @@
 # Local media: source audio, tokens, decoded WAVs, images and videos
 /media/
 
-# Original SpectroStream weights; ignore download metadata and other caches
+# Model weights and exported assets are not stored in Git.
+# See models/README.md, decoder_cpp/models/README.md and the assets READMEs.
 /models/*
-!/models/magenta_rt_cache/
-/models/magenta_rt_cache/*
-!/models/magenta_rt_cache/assets/
-/models/magenta_rt_cache/assets/*
-!/models/magenta_rt_cache/assets/savedmodels/
-/models/magenta_rt_cache/assets/savedmodels/*
-!/models/magenta_rt_cache/assets/savedmodels/ssv2_48k_stereo/
+!/models/README.md
+/decoder_cpp/models/*
+!/decoder_cpp/models/README.md
+/client_android/assets/spectrostream/*.tflite
+/client_android/assets/spectrostream/*.f32
+/client_android/assets/spectrostream/*.npy
+/client_android/assets/spectrostream/*.pb
+/client_android/assets/sage/*.tflite
+/client_android/assets/sage/*.f32
+/client_android/assets/sage/*.npy
+/client_android/assets/sage/*.pb
 
 # External sources and intermediate model exports
 /third_party/
-/decoder_cpp/models/*
-!/decoder_cpp/models/spectrostream_decoder_core_*.tflite
-!/decoder_cpp/models/rvq_codebooks.f32
-!/decoder_cpp/models/rvq_codebooks.npy
-!/decoder_cpp/models/istft_window_f960.f32
-!/decoder_cpp/models/istft_window_f960.npy
 /decoder_cpp/third_party/
-/client_android/assets/spectrostream/*.tflite
-!/client_android/assets/spectrostream/spectrostream_decoder_core_*.tflite
-/client_android/assets/spectrostream/*.f32
-!/client_android/assets/spectrostream/rvq_codebooks.f32
-!/client_android/assets/spectrostream/istft_window_f960.f32
 
 # Python environments and caches
 .venv/

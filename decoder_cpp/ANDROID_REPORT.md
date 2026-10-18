@@ -389,7 +389,7 @@ decoder_cpp/
 ## 10. Команды воспроизведения
 
 ```bash
-cd <repository>/decoder_cpp
+cd decoder_cpp
 
 # Сборка (если ещё не собрано)
 ./android/build.sh

@@ -19,7 +19,7 @@
 
 ## Сжатие и декодирование
 
-На первых трёх секундах локального `media/client_android/demo.mp3`:
+На первых трёх секундах локального `client_android/assets/audio/demo.mp3`:
 
 - Python batch encoder на CPU: один успешный трек, ноль ошибок,
   `container_validated: true`.

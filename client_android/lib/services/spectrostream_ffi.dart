@@ -12,6 +12,7 @@ class NeuralDecodeRequest {
     required this.windowPath,
     required this.sstPath,
     required this.threads,
+    required this.cores,
   });
 
   final String modelPath;
@@ -19,8 +20,10 @@ class NeuralDecodeRequest {
   final String windowPath;
   final String sstPath;
   final int threads;
+  final int cores;
 
-  String get cacheKey => '$modelPath|$codebooksPath|$windowPath|$threads';
+  String get cacheKey =>
+      '$modelPath|$codebooksPath|$windowPath|$threads|$cores';
 
   Map<String, Object> toMap() {
     return {
@@ -29,6 +32,7 @@ class NeuralDecodeRequest {
       'windowPath': windowPath,
       'sstPath': sstPath,
       'threads': threads,
+      'cores': cores,
     };
   }
 
@@ -39,6 +43,7 @@ class NeuralDecodeRequest {
       windowPath: map['windowPath']! as String,
       sstPath: map['sstPath']! as String,
       threads: map['threads']! as int,
+      cores: (map['cores'] as int?) ?? 0,
     );
   }
 }
@@ -581,7 +586,7 @@ class _NativeBindings {
   _NativeBindings()
     : _lib = DynamicLibrary.open('libspectrostream_decoder.so') {
     _create = _lib.lookupFunction<_NativeCreate, _DartCreate>(
-      'spectrostream_decoder_create',
+      'spectrostream_decoder_create_ex',
     );
     _freePcm = _lib.lookupFunction<_NativeFreePcm, _DartFreePcm>(
       'spectrostream_decoder_free_pcm',
@@ -635,7 +640,13 @@ class _NativeBindings {
     final window = request.windowPath.toNativeUtf8();
 
     try {
-      final handle = _create(model, codebooks, window, request.threads);
+      final handle = _create(
+        model,
+        codebooks,
+        window,
+        request.threads,
+        request.cores,
+      );
       if (handle == nullptr) {
         throw StateError('Unable to create decoder handle.');
       }
@@ -751,9 +762,21 @@ class _NativeBindings {
 }
 
 typedef _NativeCreate =
-    Pointer<Void> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, Int32);
+    Pointer<Void> Function(
+      Pointer<Utf8>,
+      Pointer<Utf8>,
+      Pointer<Utf8>,
+      Int32,
+      Int32,
+    );
 typedef _DartCreate =
-    Pointer<Void> Function(Pointer<Utf8>, Pointer<Utf8>, Pointer<Utf8>, int);
+    Pointer<Void> Function(
+      Pointer<Utf8>,
+      Pointer<Utf8>,
+      Pointer<Utf8>,
+      int,
+      int,
+    );
 
 typedef _NativeFreePcm = Void Function(Pointer<Float>);
 typedef _DartFreePcm = void Function(Pointer<Float>);

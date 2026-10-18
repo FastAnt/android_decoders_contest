@@ -11,7 +11,7 @@ Boundary artifacts устранены. Sample-exact output. Формальная
 ## Команды запуска
 
 ```bash
-cd <repository>/decoder_cpp
+cd decoder_cpp
 
 # Context-aware decode (качественный, без boundary artifacts):
 ./build/spectrostream_decode \
@@ -203,7 +203,7 @@ README.md             — Инструкции по сборке и запуск
 ## Сборка
 
 ```bash
-cd <repository>/decoder_cpp
+cd decoder_cpp
 mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . -j$(nproc)
