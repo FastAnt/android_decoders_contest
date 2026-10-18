@@ -1,31 +1,31 @@
-# Работа с Neural Codecs
+# Working with Neural Codecs
 
-Начните с [README.md](README.md). Практический порядок:
+Start with [README.md](README.md). Practical order:
 
-1. [docs/setup.md](docs/setup.md) — Python, исходные веса и C++-зависимости.
-2. [docs/roundtrip.md](docs/roundtrip.md) — свой трек → SST → WAV.
-3. [docs/model-export.md](docs/model-export.md) — получение assets C++ из исходных весов.
-4. [docs/validation.md](docs/validation.md) — выполненные проверки и их ограничения.
+1. [docs/setup.md](docs/setup.md) — Python, source weights, and C++ dependencies.
+2. [docs/roundtrip.md](docs/roundtrip.md) — your track → SST → WAV.
+3. [docs/model-export.md](docs/model-export.md) — producing C++ assets from source weights.
+4. [docs/validation.md](docs/validation.md) — completed validations and their limitations.
 
-Команды руководств выполняются из корня репозитория, если явно не сказано иное.
-Исходные веса SpectroStream и готовые core-модели не включены в Git; ссылки
-и порядок загрузки/экспорта — в `models/README.md`, setup и model-export.
-В чистом клоне нет пользовательских медиа, внешних checkout, окружений
-и сборок. Их подготовка описана в setup; контрольные суммы весов — в `docs/`.
+Run guide commands from the repository root unless explicitly stated otherwise.
+SpectroStream source weights and prebuilt core models are not included in Git; links
+and download/export order are in `models/README.md`, setup, and model-export.
+A clean clone has no user media, external checkouts, environments, or builds.
+Their preparation is described in setup; weight checksums are in `docs/`.
 
-Для CPU задавайте `CUDA_VISIBLE_DEVICES=-1` после подключения
-`encoder_service/env.sh`, потому что этот файл сбрасывает переменную.
-Изменение `--verify-first` само по себе не отменяет пропуск готового трека.
+For CPU, set `CUDA_VISIBLE_DEVICES=-1` after sourcing
+`encoder_service/env.sh`, because that file resets the variable.
+Changing `--verify-first` alone does not cancel skipping an existing track.
 
-Batch encoder может вернуть 0 после ошибки отдельного трека: проверяйте
-счётчики, metadata, error.json и фактические файлы. Используйте новый каталог
-эксперимента внутри `media/`, чтобы не принять прошлый результат за новый.
-Не перезаписывайте локальный эталонный трек ради smoke-проверки.
+The batch encoder can return 0 after an individual track fails: check
+counters, metadata, error.json, and the actual files. Use a new experiment
+directory inside `media/` so a previous result is not mistaken for a new one.
+Do not overwrite the local reference track for a smoke test.
 
-Python verification декодирует токены текущего процесса. Для независимой
-проверки сохранённого SST используйте C++ CLI, как в roundtrip.
-q16/q32 в metadata — оценки передачи; записанный SST содержит q64.
+Python verification decodes the tokens of the current process. For independent
+verification of a saved SST, use the C++ CLI, as in roundtrip.
+q16/q32 in metadata are transmission estimates; the recorded SST contains q64.
 
-SST/RVQ-тесты зависят от конкретной локальной фикстуры. Для своего короткого
-SST используйте CLI и C API с явными путями. Отчёты старых экспериментов
-не заменяют текущие инструкции; они могут описывать устаревшие ограничения.
+SST/RVQ tests depend on a specific local fixture. For your own short
+SST, use the CLI and C API with explicit paths. Old experiment reports
+do not replace current instructions; they may describe outdated limitations.

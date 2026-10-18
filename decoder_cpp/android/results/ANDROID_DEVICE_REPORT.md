@@ -1,8 +1,10 @@
 # Android Device Report — SpectroStream Decoder
 
-## Устройство
+> Historical report. Measurements reflect the environment, model versions and code at the time of the experiment.
 
-| Параметр | Значение |
+## Device
+
+| Parameter | Value |
 |----------|----------|
 | Manufacturer | Samsung |
 | Model | SM-S931B (Galaxy S24) |
@@ -15,9 +17,9 @@
 
 ---
 
-## Проверка артефактов
+## Artifact verification
 
-### Архитектура
+### Architecture
 
 ```
 libspectrostream_decoder.so: ELF 64-bit LSB shared object, ARM aarch64
@@ -35,7 +37,7 @@ libc++_shared.so
 libc.so
 ```
 
-Нет зависимостей от Python, TensorFlow full, ONNX, Flex.
+No dependencies on Python, full TensorFlow, ONNX, or Flex.
 
 ### Exported C ABI symbols
 
@@ -47,7 +49,7 @@ T spectrostream_decoder_destroy
 T spectrostream_decoder_last_error
 ```
 
-Все 5 обязательных символов — экспортированы.
+All 5 required symbols are exported.
 
 ### 16 KiB page alignment (Android 15)
 
@@ -55,11 +57,11 @@ T spectrostream_decoder_last_error
 LOAD segments align = 0x4000 (16384 bytes)
 ```
 
-Совместимо с Android 15 16 KiB pages.
+Compatible with Android 15 16 KiB pages.
 
-### Размеры (stripped)
+### Sizes (stripped)
 
-| Файл | Размер |
+| File | Size |
 |------|--------|
 | libspectrostream_decoder.so | 5.2 MiB |
 | spectrostream_decode | 3.8 MiB |
@@ -68,13 +70,13 @@ LOAD segments align = 0x4000 (16384 bytes)
 
 ### Checksums — Host vs Device
 
-Все SHA-256 совпали. Целостность данных на устройстве подтверждена.
+All SHA-256 checksums matched. Data integrity on the device is confirmed.
 
 ---
 
 ## C ABI Smoke Test
 
-**Результат: ALL TESTS PASSED**
+**Result: ALL TESTS PASSED**
 
 ```
 TEST: null handle safety... OK
@@ -84,17 +86,17 @@ TEST: decode file... OK (frames=7779614, sr=48000, ch=2)
 TEST: double decode (reuse handle)... OK (both decodes: 7779614 frames)
 ```
 
-Подтверждено:
-- handle создаётся
-- decode возвращает 7,779,614 PCM frames
+Confirmed:
+- the handle is created
+- decode returns 7,779,614 PCM frames
 - sample rate = 48000, channels = 2
-- повторный decode тем же handle — работает
-- error handling без crash
-- NULL handle — безопасно
+- repeated decode with the same handle works
+- error handling without a crash
+- NULL handle is safe
 
 ---
 
-## Полный decode — f75 FP32 context-aware
+## Full decode — f75 FP32 context-aware
 
 ```
 Model + assets loaded in 143.3 ms
@@ -114,11 +116,11 @@ Channels:       2
 PCM frames:     7779614
 ```
 
-**RTF 4.21** (4 threads) — в 4.2 раза медленнее realtime.
+**RTF 4.21** (4 threads) — 4.2x slower than real time.
 
 ---
 
-## Сравнение Android output vs Linux reference
+## Android output vs Linux reference
 
 ```
 Android: 15,559,228 samples, 48000 Hz, 2 ch, 7,779,614 frames
@@ -136,9 +138,9 @@ Ch1 boundary check: OK
 VERDICT: EXCELLENT - Android output matches Linux (SNR > 80 dB)
 ```
 
-**99.8 dB SNR** — практически bit-exact. Разница вызвана только различиями XNNPACK ARM vs x86 float rounding.
+**99.8 dB SNR** — practically bit-exact. The difference is caused only by XNNPACK ARM vs x86 float rounding.
 
-Нет boundary clicks. Нет NaN/Inf. Sample count exact.
+No boundary clicks. No NaN/Inf. Sample count exact.
 
 ---
 
@@ -152,57 +154,57 @@ VERDICT: EXCELLENT - Android output matches Linux (SNR > 80 dB)
 | f75 FP32 | 4 | 680,778 ms | 682,196 ms | **4.21** |
 | f75 FP32 | 6 | 418,584 ms | 419,873 ms | **2.59** |
 
-### Ключевые выводы
+### Key findings
 
-1. **f25 FP32 с 6 threads: RTF 0.79 — быстрее realtime** на Galaxy S24
-2. f75 FP32 с 6 threads: RTF 2.59 — в 2.5 раза медленнее realtime
-3. Thread scaling эффективен: 2→4 = ~1.65x, 4→6 = ~1.5x
-4. Узкое место: 99.8% времени — LiteRT inference
+1. **f25 FP32 with 6 threads: RTF 0.79 — faster than real time** on the Galaxy S24
+2. f75 FP32 with 6 threads: RTF 2.59 — 2.5x slower than real time
+3. Thread scaling is effective: 2→4 = ~1.65x, 4→6 = ~1.5x
+4. Bottleneck: 99.8% of the time is LiteRT inference
 
 ### Model load time
 
-~143–390 ms (зависит от того, горячий ли файловый кэш).
+~143–390 ms (depends on whether the file cache is warm).
 
 ---
 
-## Декодированный WAV
+## Decoded WAV
 
 ```
 android/results/reconstructed_android_f75.wav
 ```
 
-- PCM16 stereo 48kHz
+- PCM16 stereo 48 kHz
 - 30 MiB
-- 162.075 секунд
+- 162.075 seconds
 - 7,779,614 PCM frames
-- Без boundary artifacts
-- Готов к прослушиванию
+- No boundary artifacts
+- Ready for listening
 
 ---
 
-## Итоговый статус
+## Final status
 
-### Что работает
+### What works
 
-| Критерий | Статус |
+| Criterion | Status |
 |----------|--------|
 | arm64-v8a build | ✅ |
-| Binary запускается на устройстве | ✅ |
-| C ABI symbols экспортированы | ✅ |
+| Binary runs on the device | ✅ |
+| C ABI symbols exported | ✅ |
 | 16 KiB alignment | ✅ |
-| Decode f75 context-aware | ✅ |
+| f75 context-aware decode | ✅ |
 | Sample count exact | ✅ |
 | SNR > 80 dB vs Linux | ✅ (99.8 dB) |
-| Нет boundary clicks | ✅ |
-| Нет NaN/Inf | ✅ |
+| No boundary clicks | ✅ |
+| No NaN/Inf | ✅ |
 | C ABI smoke test | ✅ |
-| f25 realtime на 6 threads | ✅ (RTF 0.79) |
+| f25 realtime with 6 threads | ✅ (RTF 0.79) |
 
-### Что не проверялось в этом запуске
+### What was not tested in this run
 
-- f25 1 thread (ожидается RTF ~3.8)
-- f75 1/2 threads
-- FP16 модель
+- f25 with 1 thread (expected RTF ~3.8)
+- f75 with 1/2 threads
+- FP16 model
 - GPU delegate
 - Peak RSS
 - Thermal stability (5 min)
@@ -210,33 +212,33 @@ android/results/reconstructed_android_f75.wav
 
 ---
 
-## Рекомендации для следующего шага
+## Recommendations for the next step
 
-### Для Flutter (offline decode)
+### For Flutter (offline decode)
 
-Использовать **f25 FP32 с 6 threads** — уже работает быстрее realtime.
+Use **f25 FP32 with 6 threads** — already faster than real time.
 
-### Для real-time playback
+### For real-time playback
 
-1. Экспортировать **FP16 f25** → ожидаемый RTF ~0.4–0.5
-2. Или экспортировать **f75 FP16** → RTF ~1.3–1.7 с 6 threads (но без clicks)
+1. Export **FP16 f25** → expected RTF ~0.4–0.5
+2. Or export **f75 FP16** → RTF ~1.3–1.7 with 6 threads (but without clicks)
 
-### Для минимальной памяти
+### For minimal memory
 
-f25 FP32 (без context) — модель 136 MiB + codebooks 64 MiB ≈ 200 MiB baseline.
+f25 FP32 (no context) — 136 MiB model + 64 MiB codebooks ≈ 200 MiB baseline.
 
 ### GPU delegate
 
-Потенциально может дать RTF < 1.0 для f75, но требует отдельного теста (`./android/build.sh --gpu`).
+Potentially could yield RTF < 1.0 for f75, but requires a separate test (`./android/build.sh --gpu`).
 
 ---
 
-## Воспроизведение результата
+## Reproducing the result
 
 ```bash
 cd decoder_cpp
 
-# Build (если не собрано)
+# Build (if not built)
 ./android/build.sh
 
 # Deploy

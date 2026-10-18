@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "captured": "2026-10-19",
+  "device": {
+    "name": "AAOS on Tangorpro",
+    "soc": "Google Tensor G2 (GS201)",
+    "android": "15 (API 35)",
+    "abi": "arm64-v8a",
+    "cpu_count": 8,
+    "ram_total_mib": 7422
+  },
+  "software": {
+    "app": "Flutter debug build",
+    "spectrostream": "SpectroStream f25 FP32, TFLite 2.18 + XNNPACK, 64-layer RVQ",
+    "sage": "SAGE_FTe992, LiteRT 2.3.0, int8 rung 128/256, sliced post-net"
+  },
+  "demo": {
+    "duration_s": 133.608,
+    "mp3_bytes": 5346916,
+    "sst_bytes": 269488,
+    "sage_bytes": 172488,
+    "mp3_bitrate_kbps": 320.1,
+    "sst_bitrate_kbps": 16.1,
+    "sage_bitrate_kbps": 10.3
+  },
+  "spectrostream": {
+    "full_track_cli": {
+      "threads": 6,
+      "cores": 8,
+      "model_load_ms": 193.0,
+      "sst_parse_ms": 2.6,
+      "rvq_dequant_ms": 96.6,
+      "inference_ms": 201036.9,
+      "istft_ms": 336.1,
+      "total_decode_ms": 201554.0,
+      "audio_duration_s": 133.608,
+      "rtf": 1.5086,
+      "process_pss_kb": 595788
+    },
+    "thread_scaling_30s": [
+      {"threads": 1, "cores": 8, "model_load_ms": 196.4, "sst_parse_ms": 0.6, "rvq_ms": 16.5, "inference_ms": 108927.8, "istft_ms": 51.7, "total_ms": 109004.9, "rtf": 3.6335},
+      {"threads": 2, "cores": 8, "model_load_ms": 175.0, "sst_parse_ms": 0.6, "rvq_ms": 18.7, "inference_ms": 86894.3, "istft_ms": 64.9, "total_ms": 86988.2, "rtf": 2.8996},
+      {"threads": 4, "cores": 8, "model_load_ms": 205.4, "sst_parse_ms": 0.7, "rvq_ms": 21.5, "inference_ms": 50260.4, "istft_ms": 74.6, "total_ms": 50368.3, "rtf": 1.6789},
+      {"threads": 6, "cores": 8, "model_load_ms": 228.0, "sst_parse_ms": 0.8, "rvq_ms": 22.1, "inference_ms": 46428.6, "istft_ms": 78.8, "total_ms": 46542.6, "rtf": 1.5514},
+      {"threads": 8, "cores": 8, "model_load_ms": 228.7, "sst_parse_ms": 0.8, "rvq_ms": 23.1, "inference_ms": 44658.5, "istft_ms": 77.5, "total_ms": 44771.5, "rtf": 1.4924}
+    ],
+    "core_scaling_30s_t4": [
+      {"threads": 4, "cores": 2, "model_load_ms": 194.4, "total_ms": 69411.9, "rtf": 2.3137},
+      {"threads": 4, "cores": 4, "model_load_ms": 181.2, "total_ms": 50956.0, "rtf": 1.6985},
+      {"threads": 4, "cores": 8, "model_load_ms": 205.4, "total_ms": 50368.3, "rtf": 1.6789}
+    ]
+  },
+  "sage": {
+    "source_track_duration_s": 276.05,
+    "source": "docs/benchmarks/sage_android_results.json; Tensor G2, SAGE_FTe992, end-to-end",
+    "rung128": {
+      "threads": 4,
+      "rtf": 0.4608,
+      "rtf_model_only": 0.3226,
+      "first_window_ms": 1249.5,
+      "window_mean_ms": 965.8,
+      "single_thread_rtf": 0.7931,
+      "single_thread_first_window_ms": 2178.5,
+      "pss_mb": 838,
+      "model_bytes": 59154272
+    },
+    "rung256": {
+      "threads": 4,
+      "rtf": 0.3303,
+      "rtf_model_only": 0.2158,
+      "first_window_ms": 2419.4,
+      "window_mean_ms": 1922.2,
+      "single_thread_rtf": 0.5553,
+      "single_thread_first_window_ms": 4315.0,
+      "pss_mb": 1490,
+      "model_bytes": 64383800
+    }
+  },
+  "app": {
+    "startup_s": {
+      "spectrostream": 2.890,
+      "sage": 5.900
+    },
+    "startup_note": "Single run per mode on the debug app, Typical 6 Mbit/s profile, T6/C8; values from the in-app HISTORY screen.",
+    "pss_kb": {
+      "spectrostream": 677529,
+      "sage": 1680784
+    },
+    "pss_note": "Debug app process after asset install; the SAGE run still retains the SpectroStream asset set in the process. Use the CLI/standalone numbers for per-decoder comparisons."
+  }
+}

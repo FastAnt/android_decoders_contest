@@ -1,49 +1,49 @@
 # Neural Codecs Client Runtime
 
-Проект исследует клиентское CPU-декодирование Google SpectroStream из Magenta
-RealTime: аудио 48 kHz stereo → токены SST → RVQ → LiteRT/XNNPACK → iSTFT → PCM.
-Основные метрики: размер данных, bitrate, скорость запуска, real-time factor,
-потребление CPU/RAM и потоковое воспроизведение.
+The project investigates client-side CPU decoding of Google SpectroStream from Magenta
+RealTime: 48 kHz stereo audio → SST tokens → RVQ → LiteRT/XNNPACK → iSTFT → PCM.
+Key metrics: data size, bitrate, startup speed, real-time factor,
+CPU/RAM consumption, and streaming playback.
 
-Актуальная структура и команды запуска описаны в [README.md](README.md).
+Current structure and launch commands are described in [README.md](README.md).
 
-- `encoder_service/` — Python batch encoder, экспорт моделей и диагностика.
-  Исходная модель: `ssv2_48k_stereo`, Magenta RealTime `v1_legacy`.
-- `decoder_cpp/` — автономный C++20 runtime, CLI, C API, тесты и Android-скрипты.
-- `client_android/` — Flutter-клиент с MP3/neural demo и сетевыми профилями.
-- `decoder_cpp/docs/` — архитектура и спецификация SST-контейнера.
-- `media/` — локальные исходные медиа, токены и контрольные WAV.
-  Вход кодировщика: `media/data/input/`, выход: `media/data/encoded/`,
-  контрольные WAV Python: `media/data/reconstructed/`.
-- `models/`, `decoder_cpp/models/` — кеш исходной модели и экспортированные веса.
-- `third_party/`, `decoder_cpp/third_party/` — скачанные внешние зависимости.
+- `encoder_service/` — Python batch encoder, model export, and diagnostics.
+  Source model: `ssv2_48k_stereo`, Magenta RealTime `v1_legacy`.
+- `decoder_cpp/` — standalone C++20 runtime, CLI, C API, tests, and Android scripts.
+- `client_android/` — Flutter client with MP3/neural demo and network profiles.
+- `decoder_cpp/docs/` — architecture and SST container specification.
+- `media/` — local source media, tokens, and reference WAVs.
+  Encoder input: `media/data/input/`, output: `media/data/encoded/`,
+  Python reference WAVs: `media/data/reconstructed/`.
+- `models/`, `decoder_cpp/models/` — source model cache and exported weights.
+- `third_party/`, `decoder_cpp/third_party/` — downloaded external dependencies.
 
-Исходные веса SpectroStream и готовые core-модели не включены в Git; ссылки
-на источники и экспорт — в `models/README.md`, setup и model-export.
-Медиа, внешние зависимости, окружения и сборки исключены. Демофайлы
-Flutter в `client_android/assets/` — небольшой сгенерированный трек,
-включённый в репозиторий; бинарные модели рядом не хранятся. Иконки Android
-являются ресурсами приложения и остаются в `res/`. Пустые каталоги-заготовки
-удалены; создавайте новые каталоги вместе с содержимым.
+SpectroStream source weights and prebuilt core models are not included in Git; links
+to sources and export are in `models/README.md`, setup, and model-export.
+Media, external dependencies, environments, and builds are excluded. Flutter demo files
+in `client_android/assets/` are a small generated track included in the repository;
+binary models are not stored alongside them. Android icons are application resources
+and remain in `res/`. Empty stub directories have been removed; create new directories
+together with their contents.
 
-Пути Python-скриптов вычисляются относительно `__file__`; не добавляйте
-абсолютные пути к рабочей копии. Отчёты прошлых экспериментов сохраняются
-рядом с кодом соответствующего компонента.
+Python script paths are computed relative to `__file__`; do not add
+absolute paths to the working copy. Reports from past experiments are kept
+next to the code of the corresponding component.
 
-## Работа с треком
+## Working with a track
 
-Порядок подготовки: [docs/setup.md](docs/setup.md), затем
-[docs/roundtrip.md](docs/roundtrip.md); для C++ при отсутствии готовых assets —
-[docs/model-export.md](docs/model-export.md). Фактически проверенные команды
-и ограничения записаны в [docs/validation.md](docs/validation.md).
+Preparation order: [docs/setup.md](docs/setup.md), then
+[docs/roundtrip.md](docs/roundtrip.md); for C++ without prebuilt assets —
+[docs/model-export.md](docs/model-export.md). Actually verified commands
+and limitations are recorded in [docs/validation.md](docs/validation.md).
 
-Для CPU установите `CUDA_VISIBLE_DEVICES=-1` после `source encoder_service/env.sh`.
-Не считайте код завершения batch encoder достаточной проверкой: ошибки треков
-записываются в `error.json`, а процесс может вернуть 0. Проверяйте metadata,
-счётчики и файлы; используйте новый выходной каталог внутри `media/`.
-Python verification декодирует токены текущего запуска; независимое чтение SST
-проверяется через C++ CLI. q16/q32 в metadata — оценки, SST сохраняется q64.
+For CPU, set `CUDA_VISIBLE_DEVICES=-1` after `source encoder_service/env.sh`.
+Do not treat the batch encoder exit code as sufficient verification: track errors
+are written to `error.json`, and the process may return 0. Check metadata,
+counters, and files; use a new output directory inside `media/`.
+Python verification decodes the tokens of the current run; independent reading of SST
+is verified via the C++ CLI. q16/q32 in metadata are estimates; SST is stored as q64.
 
-Не переписывайте эталонный трек ради smoke-проверки. Не меняйте зависимости
-на последние версии ради обхода ошибки установки без отдельной проверки.
-Отчёты прошлых экспериментов могут описывать устаревшие ограничения.
+Do not rewrite the reference track for a smoke test. Do not upgrade dependencies
+to the latest versions to work around an installation error without separate
+verification. Reports from past experiments may describe outdated limitations.

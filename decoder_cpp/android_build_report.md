@@ -1,12 +1,14 @@
 # Android Build Report — SpectroStream C++ Decoder
 
-Отчёт для интеграции в Flutter-приложение.
+> Historical report. Measurements reflect the environment, model versions and code at the time of the experiment.
+
+Report for integration into a Flutter application.
 
 ---
 
-## Артефакты сборки
+## Build artifacts
 
-### Основная библиотека
+### Main library
 
 ```
 build-android-arm64/libspectrostream_decoder.so
@@ -14,19 +16,19 @@ build-android-arm64/libspectrostream_decoder.so
 
 - ABI: `arm64-v8a`
 - minSdk: 26
-- STL: `c++_shared` (требует `libc++_shared.so` рядом)
-- Размер stripped: **5.2 MiB**
-- Зависимости: нет внешних `.so` кроме `libc++_shared.so`
+- STL: `c++_shared` (requires `libc++_shared.so` alongside)
+- Stripped size: **5.2 MiB**
+- Dependencies: no external `.so` files except `libc++_shared.so`
 
-### Runtime зависимость
+### Runtime dependency
 
 ```
 $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so
 ```
 
-Эта библиотека должна лежать рядом с `libspectrostream_decoder.so` в `jniLibs/arm64-v8a/`.
+This library must be placed alongside `libspectrostream_decoder.so` in `jniLibs/arm64-v8a/`.
 
-### Тестовый CLI (не нужен Flutter, только для отладки)
+### Test CLI (not needed by Flutter, debugging only)
 
 ```
 build-android-arm64/spectrostream_decode     — 3.8 MiB stripped
@@ -35,7 +37,7 @@ build-android-arm64/test_c_api               — 3.8 MiB stripped
 
 ---
 
-## C ABI для Flutter FFI
+## C ABI for Flutter FFI
 
 ### Header
 
@@ -43,58 +45,58 @@ build-android-arm64/test_c_api               — 3.8 MiB stripped
 include/spectrostream/decoder_c_api.h
 ```
 
-### Функции
+### Functions
 
 ```c
-// Создать decoder. Возвращает opaque handle.
-// При ошибке возвращает handle с decoder=NULL, ошибка в last_error.
+// Create a decoder. Returns an opaque handle.
+// On error, returns a handle with decoder=NULL; the error is in last_error.
 SpectroStreamDecoderHandle spectrostream_decoder_create(
-    const char* model_path,        // путь к .tflite
-    const char* codebooks_path,    // путь к rvq_codebooks.f32
-    const char* window_path,       // путь к istft_window_f960.f32
-    int num_threads                // рекомендация: 4 для arm64
+    const char* model_path,        // path to .tflite
+    const char* codebooks_path,    // path to rvq_codebooks.f32
+    const char* window_path,       // path to istft_window_f960.f32
+    int num_threads                // recommendation: 4 for arm64
 );
 
-// Декодировать .sst файл в PCM float32 interleaved stereo.
-// pcm_out — выделяется библиотекой, освобождать через free_pcm.
-// Возвращает 0 при успехе, -1 при ошибке.
+// Decode a .sst file into PCM float32 interleaved stereo.
+// pcm_out is allocated by the library; free it via free_pcm.
+// Returns 0 on success, -1 on error.
 int spectrostream_decoder_decode_file(
     SpectroStreamDecoderHandle handle,
     const char* sst_path,
     float** pcm_out,               // [out] interleaved float32
     int64_t* frame_count_out,      // [out] PCM frames (samples per channel)
-    int* sample_rate_out,          // [out] всегда 48000
-    int* channels_out              // [out] всегда 2
+    int* sample_rate_out,          // [out] always 48000
+    int* channels_out              // [out] always 2
 );
 
-// Освободить PCM буфер.
+// Free the PCM buffer.
 void spectrostream_decoder_free_pcm(float* pcm);
 
-// Уничтожить decoder.
+// Destroy the decoder.
 void spectrostream_decoder_destroy(SpectroStreamDecoderHandle handle);
 
-// Получить текст последней ошибки (не нужно освобождать).
+// Get the last error text (does not need to be freed).
 const char* spectrostream_decoder_last_error(SpectroStreamDecoderHandle handle);
 ```
 
-### Гарантии ABI
+### ABI guarantees
 
-- Нет C++ exceptions через границу (всё ловится внутри)
-- Нет STL типов в public API (только `const char*`, `float*`, `int`, `int64_t`)
-- `SpectroStreamDecoderHandle` — это `void*`
-- Thread safety: один handle = один поток. Разные handles можно из разных потоков.
-- Повторный decode одним handle — работает (проверено тестом)
-- `spectrostream_decoder_destroy(NULL)` — безопасно
+- No C++ exceptions across the boundary (everything is caught internally)
+- No STL types in the public API (only `const char*`, `float*`, `int`, `int64_t`)
+- `SpectroStreamDecoderHandle` is `void*`
+- Thread safety: one handle = one thread. Different handles can be used from different threads.
+- Repeated decode with one handle works (verified by test)
+- `spectrostream_decoder_destroy(NULL)` is safe
 
-### Коды ошибок
+### Error codes
 
-- `spectrostream_decoder_create` возвращает non-null handle даже при ошибке
-- Проверять: `spectrostream_decoder_last_error(handle)` — если строка не пустая, decoder не инициализирован
-- `spectrostream_decoder_decode_file` возвращает `-1` при ошибке, `0` при успехе
+- `spectrostream_decoder_create` returns a non-null handle even on error
+- Check: `spectrostream_decoder_last_error(handle)` — if the string is non-empty, the decoder is not initialized
+- `spectrostream_decoder_decode_file` returns `-1` on error, `0` on success
 
 ---
 
-## Dart FFI Binding (пример)
+## Dart FFI Binding (example)
 
 ```dart
 import 'dart:ffi';
@@ -160,29 +162,29 @@ class SpectroStreamDecoder {
 
 ---
 
-## Модели и assets для Flutter
+## Models and assets for Flutter
 
-### Файлы, которые нужны на устройстве
+### Files needed on the device
 
-| Файл | Размер | Описание |
+| File | Size | Description |
 |------|--------|----------|
-| `spectrostream_decoder_core_fp32_f75.tflite` | 136 MiB | Основная модель (context-aware, качественная) |
-| `spectrostream_decoder_core_fp32_f25.tflite` | 136 MiB | Быстрая модель (без контекста, есть boundary artifacts) |
-| `spectrostream_decoder_core_fp16_f25.tflite` | 68 MiB | Быстрая модель FP16 (в 2 раза меньше) |
-| `rvq_codebooks.f32` | 64 MiB | Codebooks для RVQ dequantization |
+| `spectrostream_decoder_core_fp32_f75.tflite` | 136 MiB | Main model (context-aware, high quality) |
+| `spectrostream_decoder_core_fp32_f25.tflite` | 136 MiB | Fast model (no context, boundary artifacts present) |
+| `spectrostream_decoder_core_fp16_f25.tflite` | 68 MiB | Fast FP16 model (2x smaller) |
+| `rvq_codebooks.f32` | 64 MiB | Codebooks for RVQ dequantization |
 | `istft_window_f960.f32` | 3.8 KiB | iSTFT window function |
 
-### Стратегия размещения в Flutter
+### Placement strategy in Flutter
 
-**НЕ класть в APK assets** — суммарно 200+ MiB сырых данных.
+**Do NOT put them in APK assets** — 200+ MiB of raw data in total.
 
-Рекомендуемый подход:
+Recommended approach:
 
-1. Хранить модели на внешнем хранилище или app-specific storage
-2. Скачивать при первом запуске (или bundlить в expansion file)
-3. Пути передавать в `spectrostream_decoder_create` как абсолютные строки
+1. Keep the models on external storage or app-specific storage
+2. Download them on first launch (or bundle them in an expansion file)
+3. Pass the paths to `spectrostream_decoder_create` as absolute strings
 
-Пример расположения на устройстве:
+Example location on the device:
 
 ```
 /data/data/com.example.app/files/spectrostream/
@@ -193,9 +195,9 @@ class SpectroStreamDecoder {
 
 ---
 
-## Сборка .so для Flutter-проекта
+## Building the .so for a Flutter project
 
-### Вариант 1: Pre-built .so (рекомендуется для начала)
+### Option 1: Pre-built .so (recommended to start with)
 
 ```
 android/app/src/main/jniLibs/arm64-v8a/
@@ -203,11 +205,11 @@ android/app/src/main/jniLibs/arm64-v8a/
 └── libc++_shared.so
 ```
 
-Flutter автоматически пакует содержимое `jniLibs/` в APK.
+Flutter automatically packs the contents of `jniLibs/` into the APK.
 
-### Вариант 2: CMake интеграция через Gradle
+### Option 2: CMake integration via Gradle
 
-В `android/app/build.gradle`:
+In `android/app/build.gradle`:
 
 ```groovy
 android {
@@ -235,9 +237,9 @@ android {
 }
 ```
 
-**Внимание**: первая сборка через Gradle займёт 5+ минут (компиляция TFLite).
+**Note**: the first build through Gradle takes 5+ minutes (TFLite compilation).
 
-### Вариант 3: Pre-build скриптом
+### Option 3: Pre-build with a script
 
 ```bash
 cd /path/to/decoder_cpp
@@ -248,12 +250,12 @@ cp build-android-arm64/libspectrostream_decoder.so \
 
 ---
 
-## Команды для воспроизводимой сборки
+## Commands for a reproducible build
 
 ```bash
 cd decoder_cpp
 
-# 1. Убедиться что Linux build есть (нужен host flatc)
+# 1. Make sure the Linux build exists (host flatc is required)
 test -f build/flatbuffers-flatc/bin/flatc || {
     mkdir -p build && cd build
     cmake .. -DCMAKE_BUILD_TYPE=Release
@@ -261,16 +263,16 @@ test -f build/flatbuffers-flatc/bin/flatc || {
     cd ..
 }
 
-# 2. Собрать Android arm64
+# 2. Build Android arm64
 ./android/build.sh
 
-# 3. Результат
+# 3. Result
 ls -lh build-android-arm64/libspectrostream_decoder.so
 ```
 
-NDK автоматически определяется из `$HOME/Android/Sdk/ndk/` (берётся последняя версия).
+The NDK is auto-detected from `$HOME/Android/Sdk/ndk/` (the latest version is used).
 
-Явно:
+Explicitly:
 
 ```bash
 export ANDROID_NDK_HOME=$HOME/Android/Sdk/ndk/28.2.13676358
@@ -279,73 +281,73 @@ export ANDROID_NDK_HOME=$HOME/Android/Sdk/ndk/28.2.13676358
 
 ---
 
-## Производительность (Linux baseline, для ориентира)
+## Performance (Linux baseline, for reference)
 
-| Конфигурация | RTF | Время decode 162s аудио |
+| Configuration | RTF | Decode time for 162 s of audio |
 |--------------|-----|------------------------|
 | FP32 f75, 8 threads, x86-64 | 2.46 | 399 s |
 | FP32 f25, 8 threads, x86-64 | 0.88 | 143 s |
 
-На Android ARM64 с XNNPACK + NEON ожидается:
-- f25 FP32: RTF ~0.5–1.5 (зависит от SoC)
+On Android ARM64 with XNNPACK + NEON, the expected values are:
+- f25 FP32: RTF ~0.5–1.5 (depends on the SoC)
 - f75 FP32: RTF ~1.5–4.0
 - f25 FP16: RTF ~0.3–0.8
 
-**Реальные цифры будут после запуска `./android/benchmark.sh` на устройстве.**
+**Actual numbers will follow after running `./android/benchmark.sh` on the device.**
 
 ---
 
-## Выход decode
+## Decode output
 
 - Sample rate: 48000 Hz
 - Channels: 2 (stereo)
 - Format: float32 interleaved (L R L R ...)
-- Длина: точно `original_samples` из SST header
-- Для воспроизведения: конвертировать в PCM16 или передать в AudioTrack как float
+- Length: exactly `original_samples` from the SST header
+- For playback: convert to PCM16 or pass to AudioTrack as float
 
 ---
 
-## Выбор модели для Flutter
+## Model selection for Flutter
 
-| Модель | Качество | Скорость | RAM | Рекомендация |
+| Model | Quality | Speed | RAM | Recommendation |
 |--------|----------|----------|-----|--------------|
-| f75 FP32 | Лучшее (56 dB SNR, без артефактов) | Медленная | ~400 MiB | Оффлайн high-quality |
-| f25 FP32 | Хорошее (есть boundary clicks) | Быстрая | ~250 MiB | Быстрый preview |
-| f25 FP16 | Хорошее | Самая быстрая | ~180 MiB | Real-time на среднем SoC |
-| f75 FP16 | Лучшее | Средняя | ~300 MiB | **Ещё не экспортирована** |
+| f75 FP32 | Best (56 dB SNR, no artifacts) | Slow | ~400 MiB | Offline high-quality |
+| f25 FP32 | Good (boundary clicks present) | Fast | ~250 MiB | Fast preview |
+| f25 FP16 | Good | Fastest | ~180 MiB | Real-time on a mid-range SoC |
+| f75 FP16 | Best | Medium | ~300 MiB | **Not exported yet** |
 
-Для первого Flutter прототипа: начать с **f25 FP32**, потом перейти на f75 FP16 когда модель будет готова.
+For the first Flutter prototype: start with **f25 FP32**, then switch to f75 FP16 once the model is ready.
 
 ---
 
-## Что НЕ входит в библиотеку
+## What is NOT included in the library
 
-- Сетевая загрузка SST файлов (streaming)
+- Network download of SST files (streaming)
 - AudioTrack/Oboe playback
 - UI
-- Управление скачиванием моделей
+- Model download management
 - Background service
 
-Библиотека — чистый decode: `.sst` path in → PCM float32 out.
+The library is pure decode: `.sst` path in → PCM float32 out.
 
 ---
 
-## Структура файлов для Flutter-агента
+## File structure for the Flutter agent
 
 ```
 decoder_cpp/
 ├── android/
-│   ├── build.sh              ← собрать .so
-│   ├── deploy.sh             ← push на девайс для тестов
-│   ├── benchmark.sh          ← замеры
+│   ├── build.sh              ← build the .so
+│   ├── deploy.sh             ← push to the device for testing
+│   ├── benchmark.sh          ← measurements
 │   └── ...
 ├── build-android-arm64/
-│   ├── libspectrostream_decoder.so   ← ЭТО кладётся в jniLibs
-│   └── spectrostream_decode          ← CLI для отладки на девайсе
+│   ├── libspectrostream_decoder.so   ← THIS goes into jniLibs
+│   └── spectrostream_decode          ← CLI for debugging on the device
 ├── include/
 │   └── spectrostream/
-│       └── decoder_c_api.h           ← контракт для FFI binding
-├── models/                           ← НЕ в APK, скачивать отдельно
+│       └── decoder_c_api.h           ← contract for the FFI binding
+├── models/                           ← NOT in the APK, download separately
 │   ├── spectrostream_decoder_core_fp32_f75.tflite
 │   ├── rvq_codebooks.f32
 │   └── istft_window_f960.f32
@@ -354,9 +356,9 @@ decoder_cpp/
 
 ---
 
-## Известные ограничения
+## Known limitations
 
-1. **FP16 f75 модель не экспортирована** — нужен Python скрипт из `encoder_service/`
-2. **GPU delegate** — собирается с `--gpu`, но не тестирован на реальном устройстве
-3. **Потоковый decode** — текущий API обрабатывает весь файл целиком. Для streaming playback нужен новый API с блочной обработкой.
-4. **Только arm64-v8a** — armeabi-v7a не тестировался и не нужен (minSdk 26 = почти все arm64)
+1. **The FP16 f75 model is not exported** — requires the Python script from `encoder_service/`
+2. **GPU delegate** — builds with `--gpu`, but has not been tested on a real device
+3. **Streaming decode** — the current API processes the whole file. Streaming playback needs a new block-based API.
+4. **arm64-v8a only** — armeabi-v7a has not been tested and is not needed (minSdk 26 = almost all devices are arm64)

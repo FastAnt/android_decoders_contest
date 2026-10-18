@@ -1,15 +1,15 @@
-# Сжать трек и восстановить WAV
+# Compress a Track and Reconstruct the WAV
 
-Сценарий: файл → FFmpeg → SpectroStream → SST → независимый C++ decoder → WAV.
-Параллельно можно получить контрольный WAV в Python. Кодек работает с потерями;
-выход — PCM16, 48000 Hz, stereo. Равенства байтов исходнику не ожидается.
+Scenario: file → FFmpeg → SpectroStream → SST → independent C++ decoder → WAV.
+A reference WAV can also be produced in Python. The codec is lossy;
+the output is PCM16, 48000 Hz, stereo. Byte equality with the original is not expected.
 
-## 1. Выбрать трек и подготовить процесс
+## 1. Choose a Track and Prepare the Process
 
-Сначала выполните [подготовку Python и исходных весов](setup.md).
-Все блоки ниже выполняются из корня репозитория в одной Bash-сессии.
-Замените только `INPUT` своим путём; небольшой сгенерированный демотрек
-включён в `client_android/assets/audio/demo.mp3`.
+First complete the [Python and source weight setup](setup.md).
+All blocks below are run from the repository root in a single Bash session.
+Replace only `INPUT` with your path; a small generated demo track is
+included at `client_android/assets/audio/demo.mp3`.
 
 ```bash
 source encoder_service/.venv/bin/activate
@@ -19,18 +19,18 @@ export OMP_NUM_THREADS=4
 export TF_NUM_INTRAOP_THREADS=4
 export TF_NUM_INTEROP_THREADS=2
 
-INPUT="/абсолютный/путь/к/треку.mp3"
+INPUT="/absolute/path/to/track.mp3"
 RUN_DIR="media/roundtrip-$(date +%Y%m%d-%H%M%S)"
 test -f "$INPUT"
 mkdir -p "$RUN_DIR"
 ```
 
-Значение `CUDA_VISIBLE_DEVICES=-1` задавайте после `source env.sh`.
-Остальные три переменные ограничивают число CPU-потоков для этого запуска.
-Для проверки на существующем локальном демотреке можно задать
+Set `CUDA_VISIBLE_DEVICES=-1` after `source env.sh`.
+The other three variables limit the number of CPU threads for this run.
+For a check against the existing local demo track, you can set
 `INPUT="$PWD/client_android/assets/audio/demo.mp3"`.
 
-## 2. Закодировать и получить контрольный WAV Python
+## 2. Encode and Produce the Python Reference WAV
 
 ```bash
 python encoder_service/batch_encode.py \
@@ -42,11 +42,11 @@ python encoder_service/batch_encode.py \
   --verify-depths 64
 ```
 
-Для первого короткого прогона добавьте `--max-seconds 3`; без этого параметра
-кодируется весь трек. Загрузка модели и прогрев могут занять больше времени,
-чем обработка короткого фрагмента.
+For a first short run, add `--max-seconds 3`; without this option
+the entire track is encoded. Model loading and warm-up may take longer
+than processing a short fragment.
 
-Создаются:
+The following are created:
 
 ```text
 RUN_DIR/
@@ -60,24 +60,24 @@ RUN_DIR/
         └── TRACK_ID.q64.wav
 ```
 
-Если имя исходника заканчивается 32-символьным hex ID, используется этот ID;
-иначе ID вычисляется из абсолютного пути. Перенос исходника может поменять ID.
-Не подставляйте идентификатор демонстрационного трека в команды для своего аудио.
+If the source filename ends with a 32-character hex ID, that ID is used;
+otherwise the ID is computed from the absolute path. Moving the source file can change the ID.
+Do not substitute the demo track's identifier into commands for your own audio.
 
-`--verify-first 1` декодирует токены первого **вновь закодированного** трека
-в текущем процессе; этот этап не читает SST с диска. Независимое чтение SST
-проверяется шагом C++ ниже. Без `--verify-first` WAV Python не создаётся.
+`--verify-first 1` decodes the tokens of the first **newly encoded** track
+in the current process; this step does not read SST from disk. Independent SST reading
+is verified by the C++ step below. Without `--verify-first`, no Python WAV is created.
 
-При повторном запуске в тот же выходной каталог уже обработанный файл может
-быть пропущен. Чтобы перекодировать его и повторить проверку, добавьте `--force`.
-Изменение только `--verify-depths` или `--verify-first` не отменяет пропуск.
+When re-running into the same output directory, an already processed file may
+be skipped. To re-encode it and repeat verification, add `--force`.
+Changing only `--verify-depths` or `--verify-first` does not cancel the skip.
 
-## 3. Проверить успех и найти SST
+## 3. Verify Success and Locate the SST
 
-Кодировщик ловит ошибки отдельных треков и записывает `error.json`;
-**код завершения 0 сам по себе не означает успешное кодирование**.
-Должны совпасть итоговые счётчики, метаданные и фактические файлы.
-Следующая команда ожидает один трек в новом выходном каталоге:
+The encoder catches per-track errors and writes `error.json`;
+**an exit code of 0 alone does not mean successful encoding**.
+The final counters, metadata, and actual files must agree.
+The following command expects one track in a new output directory:
 
 ```bash
 SST_FILE="$(python - "$RUN_DIR/encoded/catalog.json" <<'PY'
@@ -86,29 +86,29 @@ import sys
 from pathlib import Path
 
 catalog = json.loads(Path(sys.argv[1]).read_text())
-assert catalog['track_count'] == 1, 'Ожидался один успешно закодированный трек'
+assert catalog['track_count'] == 1, 'Expected one successfully encoded track'
 track = catalog['tracks'][0]
 assert track['status'] == 'success' and track['container_validated']
-assert len(track['verifications']) == 1, 'Нет контрольного декодирования'
+assert len(track['verifications']) == 1, 'No reference decoding'
 sst = Path(track['container_path'])
 assert sst.is_file() and sst.stat().st_size == track['container_bytes']
 assert Path(track['verifications'][0]['file']).is_file()
-assert not (sst.parent / 'error.json').exists(), 'Есть ошибка последнего запуска'
+assert not (sst.parent / 'error.json').exists(), 'An error from the last run exists'
 print(sst)
 PY
 )"
 test -f "$SST_FILE"
 ```
 
-При ошибке не переходите к декодированию: проверьте вывод `FAILED`,
-`Failed in this run` и `encoded/TRACK_ID/error.json`. Старые metadata/catalog
-могут остаться от предыдущих запусков; новый `RUN_DIR` устраняет эту неоднозначность.
+On error, do not proceed to decoding: check the `FAILED` output,
+`Failed in this run`, and `encoded/TRACK_ID/error.json`. Old metadata/catalog
+may remain from previous runs; a new `RUN_DIR` removes this ambiguity.
 
-## 4. Независимо декодировать SST в C++
+## 4. Independently Decode the SST in C++
 
-Требуются собранный runtime из [setup](setup.md) и три согласованных файла
-из [инструкции экспорта](model-export.md). Для подготовленного локального
-набора проверьте их контрольные суммы:
+This requires the built runtime from [setup](setup.md) and three matching files
+from the [export instructions](model-export.md). For the prepared local
+set, verify their checksums:
 
 ```bash
 sha256sum -c docs/decoder-f25.sha256
@@ -123,12 +123,12 @@ decoder_cpp/build/spectrostream_decode \
   --threads 4
 ```
 
-`--inspect` не требует моделей и проверяет заголовок, диапазон токенов и CRC;
-ожидается `CRC status: OK`. Полное декодирование требует весов и завершения
-с кодом 0. SHA256 выше относится к передаваемому исходному набору: собственный
-повторный экспорт проверяйте по созданному им отчёту, байты могут отличаться.
+`--inspect` does not require models and checks the header, token range, and CRC;
+`CRC status: OK` is expected. Full decoding requires the weights and exit
+code 0. The SHA256 above refers to the distributed source set: verify your own
+re-export against the report it produced; the bytes may differ.
 
-## 5. Проверить WAV
+## 5. Verify the WAV
 
 ```bash
 python - "$RUN_DIR/encoded/catalog.json" "$RUN_DIR/cpp.wav" <<'PY'
@@ -148,26 +148,27 @@ for name in [track['verifications'][0]['file'], sys.argv[2]]:
 PY
 ```
 
-Проверка подтверждает формат и длину, но не измеряет качество звука.
-Python и C++ используют разные схемы блочного декодирования, поэтому
-побитового совпадения между их WAV также не требуется.
-Для визуальной проверки заголовка можно использовать `ffprobe`:
+The check confirms format and length, but does not measure audio quality.
+Python and C++ use different block decoding schemes, so
+bit-for-bit equality between their WAVs is also not required.
+For a visual check of the header, you can use `ffprobe`:
 
 ```bash
 ffprobe -v error -show_entries stream=codec_name,sample_rate,channels \
   -show_entries format=duration,size -of json "$RUN_DIR/cpp.wav"
 ```
 
-Файл SST содержит полный q64: номинально 16 kbit/s плюс заголовки.
-`stream_variants.q16/q32` в metadata — оценки размеров передачи при 4/8 kbit/s;
-`--verify-depths 16,32,64` создаёт варианты WAV, а не три разных SST.
-При `--max-seconds` не сравнивайте размер короткого SST с размером всего MP3
-как степень сжатия одного и того же фрагмента.
+The SST file contains full q64: nominally 16 kbit/s plus headers.
+`stream_variants.q16/q32` in metadata are estimates of transmission sizes at 4/8 kbit/s;
+`--verify-depths 16,32,64` creates WAV variants, not three different SSTs.
+With `--max-seconds`, do not compare the size of a short SST with the size of the whole MP3
+as a compression ratio for the same fragment.
 
-## Повторение и передача результата
+## Reproducing and Sharing the Result
 
-Сохраните команды, metadata/catalog, лог CLI, версии инструментов и контрольные
-суммы модели/codebooks/window. Метаданные содержат абсолютные пути; после
-переноса данных проверьте их актуальность. Медиа передаются отдельно
-от Git; исходные и runtime-веса уже включены в репозиторий и bundle.
-Текущие [результаты прогона](validation.md) показывают выполненные проверки.
+Keep the commands, metadata/catalog, CLI log, tool versions, and checksums
+of the model/codebooks/window. Metadata contains absolute paths; after
+moving the data, check that they are still valid. Media are transferred separately
+from Git; source and runtime weights are not included and must be downloaded
+or exported as described above.
+The current [run results](validation.md) show the completed checks.

@@ -1,0 +1,101 @@
+{
+ "device": "Tensor G2 (AAOS Tangorpro, API 35)",
+ "model": "SAGE_FTe992 decoder, dynamic int8 weights, sliced post-net",
+ "container": "int8 per-row + zlib, 10.21 kbps, 352222 B for 276.05 s",
+ "rung256": {
+  "windows": 31,
+  "decodeTotalMs": 91202.5,
+  "rtf": 0.3303,
+  "rtf_model_only": 0.2158,
+  "firstWindowMs": 2419.4,
+  "windowMeanMs": 1922.2,
+  "pssMb": 1490,
+  "modelBytes": 64383800,
+  "samples": 12174336,
+  "pss_note": "~1.40-1.49 GB PSS"
+ },
+ "rung128": {
+  "windows": 93,
+  "decodeTotalMs": 124446.1,
+  "rtf": 0.4608,
+  "rtf_model_only": 0.3226,
+  "firstWindowMs": 1249.5,
+  "windowMeanMs": 965.8,
+  "pssMb": 838,
+  "samples": 12174336,
+  "pss_note": "~0.80-0.84 GB PSS",
+  "modelBytes": 59154272
+ },
+ "parity": {
+  "device_vs_python_tflite_r256_full_snr_db": 79.9,
+  "device_vs_python_tflite_r256_maxdiff": 9.1552734e-05,
+  "device_vs_python_tflite_r128_4win_snr_db": 78.1,
+  "device_vs_python_tflite_r128_4win_maxdiff": 6.1035156e-05,
+  "sample_counts_exact": true
+ },
+ "quality_full_track_vs_original": {
+  "device_w8a8_int8_latents": {
+   "si_sdr_db": 1.6161,
+   "mrstft": 1.3432,
+   "logmel": 0.736,
+   "waveform_snr_db": 3.2479
+  },
+  "official_torch_fp32_latents": {
+   "si_sdr_db": 1.7693,
+   "mrstft": 1.2153,
+   "logmel": 0.6934,
+   "waveform_snr_db": 3.3021
+  },
+  "int8_latent_vs_fp32_latent_waveform_snr_db": 15.9,
+  "device_w8a8_int8_latents_r128": {
+   "si_sdr_db": 1.6162,
+   "mrstft": 1.3428,
+   "logmel": 0.7357,
+   "waveform_snr_db": 3.2481
+  }
+ },
+ "playback": {
+  "rung256": {
+   "startupMs": 3371.8,
+   "steadyRtf": 0.22,
+   "underruns": 0,
+   "seek": "60000ms ok"
+  },
+  "rung128": {
+   "startupMs": 1666.5,
+   "steadyRtf": 0.32,
+   "underruns": 0,
+   "seek": "60000ms ok"
+  }
+ },
+ "limitations": [
+  "peak PSS is high (XNNPACK activation arena)",
+  "output peak ~1.91, no limiter in the player",
+  "one device + one track, no battery / low-end SoC / GPU-NPU tests"
+ ],
+ "rung128_vs_rung256_waveform_snr_db": 42.64,
+ "singleThread": {
+  "rung128": {
+   "windows": 93,
+   "decodeTotalMs": 218940.6,
+   "seconds": 218.9,
+   "rtf": 0.7931,
+   "rtf_model_only": 0.689,
+   "firstWindowMs": 2178.5,
+   "windowMeanMs": 2045.2,
+   "samples": 12174336
+  },
+  "rung256": {
+   "windows": 31,
+   "decodeTotalMs": 153290.7,
+   "seconds": 153.3,
+   "rtf": 0.5553,
+   "rtf_model_only": 0.4517,
+   "firstWindowMs": 4315.0,
+   "windowMeanMs": 4022.2,
+   "samples": 12174336
+  },
+  "trackDurationSec": 276.05,
+  "note": "Tensor G2, CompiledModel CPU, 1 thread, end-to-end (container + TFLite + pre-transform + iSTFT)"
+ }
+}

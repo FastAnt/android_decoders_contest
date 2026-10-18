@@ -1,5 +1,7 @@
 # Client Android Report
 
+> Historical report. Measurements and UI details reflect the code and device at the time of the experiment.
+
 ## Context Snapshot
 - Date: 2026-07-12
 - Scope: Flutter demo app for startup comparison MP3 vs Neural Codec

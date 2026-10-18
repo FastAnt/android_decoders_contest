@@ -1,46 +1,46 @@
-# Подготовить модели для C++ и Flutter
+# Prepare Models for C++ and Flutter
 
-Для восстановления SST runtime нужны согласованные core-модель TFLite,
-RVQ codebooks и окно iSTFT. Исходные веса Magenta и пакет TensorFlow
-нужны на этапе экспорта; готовый C++ runtime не использует Python.
+To reconstruct SST, the runtime needs a matching TFLite core model,
+RVQ codebooks, and an iSTFT window. The source Magenta weights and the TensorFlow package
+are needed at the export stage; the prebuilt C++ runtime does not use Python.
 
-## Готовый набор или собственный экспорт
+## Prebuilt Set or Custom Export
 
-Готовые core-модели f25/f75/f100 в FP32/FP16, codebooks и окно **не
-хранятся в Git**. Их нужно экспортировать из исходных весов Magenta или
-скачать отдельно. Файлы, которые ожидает C++:
+Prebuilt f25/f75/f100 core models in FP32/FP16, codebooks, and the window are **not
+stored in Git**. They must be exported from the source Magenta weights or
+downloaded separately. The files the C++ runtime expects:
 
 - `spectrostream_decoder_core_fp32_f25.tflite` — 142784864 bytes;
 - `rvq_codebooks.f32` — 67108864 bytes;
 - `istft_window_f960.f32` — 3840 bytes.
 
-Ссылки на исходные веса — в [models/README.md](../models/README.md).
-После подготовки набора проверьте контрольные суммы:
+Links to the source weights are in [models/README.md](../models/README.md).
+After preparing the set, verify the checksums:
 
 ```bash
 sha256sum -c docs/decoder-f25.sha256
 ```
 
-Рецепт ниже нужен для воспроизведения и изменения моделей. При повторном
-экспорте байты TFLite могут отличаться: сохраняйте собственный отчёт,
-контрольные суммы и результаты численной проверки.
+The recipe below is used to reproduce and modify the models. On re-export,
+the TFLite bytes may differ: keep your own report, checksums, and numerical
+verification results.
 
-В Git сохранены отчёты исходных экспортов
+Reports of the original exports are kept in Git:
 [f25](model-reports/decoder_core_export_f25.json),
-[f75](model-reports/decoder_core_export_f75.json) и
-[f100](model-reports/decoder_core_export_f100.json), а также
-`runtime-assets.sha256` для всех шести имеющихся core-моделей, codebooks
-и окна. В отчётах пути нормализованы относительно корня проекта.
-Повторный экспорт f25 FP32 и FP16 дал те же SHA256, что исходный набор проекта.
-Промежуточные экспортированные SavedModels, ONNX и Flex-эксперименты
-остаются локальными; основные исходные и runtime-веса сохранены в репозитории.
+[f75](model-reports/decoder_core_export_f75.json), and
+[f100](model-reports/decoder_core_export_f100.json), along with
+`runtime-assets.sha256` for all six available core models, codebooks,
+and the window. In the reports, paths are normalized relative to the project root.
+Re-exporting f25 FP32 and FP16 produced the same SHA256 as the project's original set.
+Intermediate exported SavedModels, ONNX, and Flex experiments
+remain local; the source and runtime weights are not stored in Git.
 
-## 1. Подготовить SavedModels и codebooks
+## 1. Prepare SavedModels and Codebooks
 
-Выполните [установку Python и загрузку исходных весов](setup.md).
-Все команды далее выполняются из корня репозитория.
-Каталог `MODEL_DIR` должен быть новым или не содержать результатов предыдущего
-экспорта. Пример экспорта в новый каталог без перезаписи исходных весов:
+Complete the [Python setup and source weight download](setup.md).
+All commands below are run from the repository root.
+The `MODEL_DIR` directory must be new or must not contain results from a previous
+export. Example export to a new directory without overwriting source weights:
 
 ```bash
 source encoder_service/.venv/bin/activate
@@ -81,14 +81,14 @@ export_fixed_savedmodel(
 PY
 ```
 
-Этот рецепт использует существующие функции экспортёров и создаёт
+This recipe uses the existing exporter functions and creates
 `rvq_codebooks.npy`, `rvq_codebooks.f32`, `rvq_codebooks.json`,
-`decoder_savedmodel/` и `decoder_savedmodel_f25/`.
-Он не выполняет необязательные ONNX- и Flex-конвертации.
-Для повторения выберите новый `MODEL_DIR`; не добавляйте принудительную
-перезапись к рабочим моделям без необходимости.
+`decoder_savedmodel/`, and `decoder_savedmodel_f25/`.
+It does not perform the optional ONNX and Flex conversions.
+To reproduce, choose a new `MODEL_DIR`; do not add forced
+overwriting of working models unless necessary.
 
-## 2. Экспортировать core и окно iSTFT
+## 2. Export the Core and iSTFT Window
 
 ```bash
 python encoder_service/export_litert_core_v3.py \
@@ -98,18 +98,18 @@ python encoder_service/export_litert_core_v3.py \
   --runs 1
 ```
 
-Создаются FP32 и FP16 core-модели, `decoder_core_savedmodel_f25/`,
-`istft_window_f960.f32` с метаданными и `decoder_core_export_f25.json`.
-`--runs 1` сокращает число измерений inference; для замеров используйте
-большее число. Скрипт сам проверяет численное соответствие TensorFlow;
-ожидается `FP32 validation PASSED` и завершение с кодом 0.
+FP32 and FP16 core models, `decoder_core_savedmodel_f25/`,
+`istft_window_f960.f32` with metadata, and `decoder_core_export_f25.json` are created.
+`--runs 1` reduces the number of inference measurements; for benchmarks, use
+a larger number. The script checks numerical equivalence against TensorFlow itself;
+`FP32 validation PASSED` and exit code 0 are expected.
 
-Вход core-модели FP32: `[1, 25, 256]` float32 embeddings.
-Выход: `[1, 2, 100, 481, 2]` float32, real/imag STFT.
-C++ выполняет iSTFT отдельно. Полная модель с выходом PCM или файл с Flex
-операторами не являются заменой core-модели.
+FP32 core model input: `[1, 25, 256]` float32 embeddings.
+Output: `[1, 2, 100, 481, 2]` float32, real/imag STFT.
+C++ performs iSTFT separately. A full model with PCM output or a file with Flex
+operators is not a replacement for the core model.
 
-Проверка отчёта и SHA256 созданных моделей:
+Check the report and SHA256 of the created models:
 
 ```bash
 python - <<'PY'
@@ -132,28 +132,28 @@ for filename in ['rvq_codebooks.f32', 'istft_window_f960.f32']:
 PY
 ```
 
-Теперь можно выполнить [C++-часть round-trip](roundtrip.md).
-Если экспортировали в нестандартный каталог, передавайте его файлы
-в `--model`, `--codebooks`, `--window` вместо стандартных путей.
+Now you can perform the [C++ part of the round-trip](roundtrip.md).
+If you exported to a non-standard directory, pass its files
+to `--model`, `--codebooks`, `--window` instead of the standard paths.
 
-## Другие модели и исследовательские скрипты
+## Other Models and Research Scripts
 
-Для f75/f100 подготовьте фиксированный SavedModel тем же вызовом
-`export_fixed_savedmodel`, заменив `frames` и имя каталога, затем запускайте
-core-export с соответствующим `--frames`. Сначала проверьте f25;
-дополнительные варианты нужны Flutter и отдельным экспериментам.
+For f75/f100, prepare a fixed SavedModel with the same
+`export_fixed_savedmodel` call, changing `frames` and the directory name, then run
+the core export with the corresponding `--frames`. Verify f25 first;
+additional variants are needed by Flutter and separate experiments.
 
-Полный CLI `export_decoder_assets.py` также конвертирует ONNX и требует
-`tf2onnx`, `onnx`, `onnxruntime`, которых нет в основном frozen-списке.
-В исследовательском окружении наблюдались версии 1.17.0, 1.22.0, 1.27.0
-соответственно; для рекомендуемого выше пути эти пакеты не нужны.
-CLI `export_litert_assets.py` после сохранения фиксированного SavedModel
-пытается конвертировать полную модель с Complex/IRFFT и может использовать
-Flex или завершиться на численной проверке. Поэтому основной рецепт
-вызывает только его функцию подготовки SavedModel.
+The full `export_decoder_assets.py` CLI also converts ONNX and requires
+`tf2onnx`, `onnx`, and `onnxruntime`, which are not in the main frozen list.
+In the research environment, versions 1.17.0, 1.22.0, and 1.27.0 were observed
+respectively; the recommended path above does not need these packages.
+After saving a fixed SavedModel, the `export_litert_assets.py` CLI
+attempts to convert the full model with Complex/IRFFT and may use
+Flex or fail numerical validation. Therefore the main recipe
+calls only its SavedModel preparation function.
 
-Старые `export_litert_core.py` и `export_litert_core_v2.py` — предыдущие
-эксперименты. ONNX-модель, полная TFLite/Flex-модель и builtin-only core
-имеют разные контракты и не взаимозаменяемы.
+The old `export_litert_core.py` and `export_litert_core_v2.py` are previous
+experiments. The ONNX model, the full TFLite/Flex model, and the builtin-only core
+have different contracts and are not interchangeable.
 
-[Проверенные шаги и ограничения](validation.md).
+[Verified steps and limitations](validation.md).

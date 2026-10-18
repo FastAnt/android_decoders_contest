@@ -1,39 +1,39 @@
-# Python encoder и экспорт SpectroStream
+# Python Encoder and SpectroStream Export
 
-[Подготовка окружения и весов](../docs/setup.md) ·
-[Полный цикл на своём треке](../docs/roundtrip.md) ·
-[Экспорт assets C++](../docs/model-export.md)
+[Environment and weight setup](../docs/setup.md) ·
+[Full cycle on your own track](../docs/roundtrip.md) ·
+[Exporting C++ assets](../docs/model-export.md)
 
-Все примеры выполняются из корня репозитория. Скрипты вычисляют стандартные
-каталоги относительно `__file__`; аргументы путей CLI — относительно текущего
-каталога запуска. Не запускайте повторное кодирование в каталоге эталонной
-фикстуры, если не собираетесь её заменять.
+All examples are run from the repository root. Scripts compute default
+directories relative to `__file__`; CLI path arguments are relative to the current
+working directory. Do not run re-encoding in the reference fixture directory
+unless you intend to replace it.
 
 ## batch_encode.py
 
-Вход — файл либо рекурсивно просматриваемый каталог с расширениями
-`.wav`, `.wave`, `.mp3`, `.flac`, `.ogg`, `.opus`, `.m4a`, `.aac`.
-FFmpeg преобразует аудио в float32 PCM 48000 Hz stereo.
-Кодирование использует RVQ depth 64 и пишет SST1 с 10-битными токенами.
+Input is a file or a recursively scanned directory with the extensions
+`.wav`, `.wave`, `.mp3`, `.flac`, `.ogg`, `.opus`, `.m4a`, and `.aac`.
+FFmpeg converts audio to float32 PCM 48000 Hz stereo.
+Encoding uses RVQ depth 64 and writes SST1 with 10-bit tokens.
 
-Основные параметры:
+Main options:
 
-- `--input PATH` — файл/каталог; стандартно `media/data/input/`.
-- `--output DIR` — SST и метаданные; стандартно `media/data/encoded/`.
-- `--reconstructed DIR` — контрольные WAV; стандартно `media/data/reconstructed/`.
-- `--device cpu|gpu|auto` — стандартно `gpu`; для CPU на GPU-машине также
-  установите `CUDA_VISIBLE_DEVICES=-1` после `source encoder_service/env.sh`.
-- `--max-seconds N` — ограничить каждый трек первыми N секундами.
-- `--limit N` — обработать первые N найденных файлов.
-- `--verify-first N` — восстановить первые N новых треков; стандартно 0.
-- `--verify-depths 16,32,64` — глубины контрольного декодирования;
-  допустимы только 16, 32, 64, стандартно все три.
-- `--force` — повторно обработать ранее закодированные файлы.
-- `--inference-chunk-seconds N` — центральный фрагмент inference, стандартно 8 s.
-- `--context-seconds N` — контекст с каждой стороны, стандартно 1 s.
+- `--input PATH` — file/directory; default `media/data/input/`.
+- `--output DIR` — SST and metadata; default `media/data/encoded/`.
+- `--reconstructed DIR` — reference WAVs; default `media/data/reconstructed/`.
+- `--device cpu|gpu|auto` — default `gpu`; for CPU on a GPU machine, also
+  set `CUDA_VISIBLE_DEVICES=-1` after `source encoder_service/env.sh`.
+- `--max-seconds N` — limit each track to the first N seconds.
+- `--limit N` — process the first N files found.
+- `--verify-first N` — reconstruct the first N new tracks; default 0.
+- `--verify-depths 16,32,64` — reference decoding depths;
+  only 16, 32, and 64 are allowed, default all three.
+- `--force` — re-process previously encoded files.
+- `--inference-chunk-seconds N` — central inference fragment, default 8 s.
+- `--context-seconds N` — context on each side, default 1 s.
 
-Контейнер разбит на чанки по 25 codec frames (1 s) с отдельными CRC.
-Это отдельное понятие от 8-секундных inference-фрагментов.
+The container is split into chunks of 25 codec frames (1 s) with separate CRCs.
+This is a separate concept from the 8-second inference fragments.
 
 ```bash
 source encoder_service/.venv/bin/activate
@@ -42,32 +42,32 @@ export CUDA_VISIBLE_DEVICES=-1
 python encoder_service/batch_encode.py --help
 ```
 
-Для пакетной обработки передайте собственный каталог в `--input`.
-Одинаковый 32-символьный ID в именах MP3 и WAV даёт одинаковый выходной ID;
-не кладите альтернативные версии одного трека в пакет без учёта этого правила.
+For batch processing, pass your own directory to `--input`.
+The same 32-character ID in MP3 and WAV filenames produces the same output ID;
+do not put alternative versions of the same track into a batch without accounting for this rule.
 
-## Как определить успешную обработку
+## How to Determine Successful Processing
 
-Успешный трек имеет `metadata.json` со `status: success` и
-`container_validated: true`, фактический SST и запись в `catalog.json`.
-Ошибки треков записываются в `error.json`; процесс может завершиться кодом 0
-при наличии ошибок. Проверяйте `Failed in this run` и созданные файлы.
-Каталог с данными прошлых запусков может содержать устаревшие успешные записи.
+A successful track has `metadata.json` with `status: success` and
+`container_validated: true`, the actual SST, and an entry in `catalog.json`.
+Track errors are written to `error.json`; the process may exit with code 0
+despite errors. Check `Failed in this run` and the files created.
+A data directory from previous runs may contain stale successful entries.
 
-Кодировщик пропускает подходящие готовые результаты. Изменение только
-`--verify-first`/`--verify-depths` не запускает обработку заново; нужен `--force`
-или новый каталог выхода. Варианты q16/q32 в metadata — расчётные оценки,
-а записанный SST остаётся q64.
+The encoder skips suitable completed results. Changing only
+`--verify-first`/`--verify-depths` does not trigger reprocessing; `--force`
+or a new output directory is required. The q16/q32 variants in metadata are calculated
+estimates, while the recorded SST remains q64.
 
-## Экспорт и диагностика
+## Export and Diagnostics
 
-Рекомендуемый путь описан в [model-export.md](../docs/model-export.md).
-`export_litert_core_v3.py` создаёт core-модели для C++/Flutter.
-`export_decoder_assets.py` и `export_litert_assets.py` также содержат
-вспомогательные функции для подготовки SavedModel и codebooks.
+The recommended path is described in [model-export.md](../docs/model-export.md).
+`export_litert_core_v3.py` creates core models for C++/Flutter.
+`export_decoder_assets.py` and `export_litert_assets.py` also contain
+helper functions for preparing a SavedModel and codebooks.
 
-Самостоятельные ONNX/Flex-эксперименты (`diagnose_onnx_decoder.py`,
-`export_decoder_assets.py` как CLI, полный CLI `export_litert_assets.py`)
-не обязательны для основного C++-пути. Старые `export_litert_core.py` и
-`export_litert_core_v2.py` сохранены для воспроизведения исследований;
-не выбирайте их как основной экспортёр для нового запуска.
+Standalone ONNX/Flex experiments (`diagnose_onnx_decoder.py`,
+`export_decoder_assets.py` as a CLI, the full `export_litert_assets.py` CLI)
+are not required for the main C++ path. The old `export_litert_core.py` and
+`export_litert_core_v2.py` are kept for reproducing research;
+do not choose them as the main exporter for a new run.

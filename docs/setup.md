@@ -1,20 +1,20 @@
-# Подготовка из чистого клона
+# Setup from a Clean Clone
 
-Все команды выполняются в Bash из корня репозитория на Linux.
-Проверенное существующее окружение: Ubuntu 24.04 x86-64, Python 3.12.3,
+All commands are run in Bash from the repository root on Linux.
+Verified existing environment: Ubuntu 24.04 x86-64, Python 3.12.3,
 TensorFlow 2.20.0, NumPy 2.4.6, GCC 13.3, CMake 3.28.3, FFmpeg 6.1.1.
-Свежая установка всех пакетов и загрузка зависимостей с нуля отдельно
-не повторялись; [границы проверки](validation.md) указаны явно.
+A fresh installation of all packages and a download of dependencies from scratch
+have not been repeated separately; the [validation limits](validation.md) are stated explicitly.
 
-## 1. Системные инструменты
+## 1. System Tools
 
-Нужны Git, Python 3.12 с `venv`, FFmpeg/ffprobe. Для сборки C++ также нужны
-CMake 3.22+ и C++20-компилятор; Ninja можно использовать как альтернативу Make.
-Установите эти инструменты средствами своей ОС. Для полного Python-пути
-кеш исходных весов занимает около 484 MiB, а окружение с зависимостями —
-несколько GiB; C++-сборка и экспорт добавляют дополнительные GiB.
+Git, Python 3.12 with `venv`, and FFmpeg/ffprobe are required. Building C++ also requires
+CMake 3.22+ and a C++20 compiler; Ninja can be used instead of Make.
+Install these tools with your OS package manager. For the full Python path,
+the source weight cache takes about 484 MiB, and the environment with dependencies —
+several GiB; the C++ build and export add further GiB.
 
-## 2. Python-окружение
+## 2. Python Environment
 
 ```bash
 python3.12 -m venv encoder_service/.venv
@@ -25,44 +25,44 @@ source encoder_service/env.sh
 export CUDA_VISIBLE_DEVICES=-1
 ```
 
-Список зависимостей закрепляет Magenta RealTime на ревизии
-`04ebaa7da13701734281c630ffd13f7ee9893e45` (`v1_legacy`, пакет `magenta_rt` 0.3.0).
-Отдельный checkout в `third_party/magenta-realtime/` не обязателен:
-`pip` установит зафиксированную editable-зависимость из Git.
-Не заменяйте эту ревизию текущей веткой upstream без отдельной проверки.
+The dependency list pins Magenta RealTime at revision
+`04ebaa7da13701734281c630ffd13f7ee9893e45` (`v1_legacy`, package `magenta_rt` 0.3.0).
+A separate checkout in `third_party/magenta-realtime/` is not required:
+`pip` installs the pinned editable dependency from Git.
+Do not replace this revision with the current upstream branch without separate verification.
 
-`env.sh` **сбрасывает** `CUDA_VISIBLE_DEVICES`; поэтому CPU-переменную
-нужно задавать **после** подключения файла. На машине с GPU комбинация
-`--device cpu` без этой переменной может завершиться ошибкой
+`env.sh` **resets** `CUDA_VISIBLE_DEVICES`; therefore the CPU variable
+must be set **after** sourcing the file. On a machine with a GPU, the combination
+`--device cpu` without this variable may fail with
 `Physical devices cannot be modified after being initialized`: Magenta
-пытается менять GPU memory growth после инициализации TensorFlow.
-Для GPU-запуска переменную `-1` не задавайте; GPU-сценарий здесь не проверен.
+tries to change GPU memory growth after TensorFlow initialization.
+For a GPU run, do not set the variable to `-1`; the GPU scenario has not been verified here.
 
-Проверка импорта ещё не загружает веса:
+The import check does not load the weights yet:
 
 ```bash
 python -c 'import tensorflow as tf; from magenta_rt import spectrostream; print(tf.__version__)'
 ffmpeg -version
 ```
 
-## 3. Исходные веса SpectroStream
+## 3. SpectroStream Source Weights
 
-Magenta использует `encoder`, `decoder` и `quantizer` из `ssv2_48k_stereo`.
-Сами SavedModel **не включены в Git**: их нужно скачать с Hugging Face.
-Ссылки, закреплённая ревизия и лицензия — в
-[models/README.md](../models/README.md). После загрузки проверьте целостность:
+Magenta uses the `encoder`, `decoder`, and `quantizer` from `ssv2_48k_stereo`.
+The SavedModels themselves are **not included in Git**: they must be downloaded from Hugging Face.
+Links, the pinned revision, and the license are in
+[models/README.md](../models/README.md). After downloading, verify integrity:
 
 ```bash
 sha256sum -c docs/source-model.sha256
 ```
 
-Если проверка проходит, переходите к round-trip.
-По умолчанию `env.sh` задаёт источник `hf` и корень кеша
-`models/magenta_rt_cache/`. При первом запуске Magenta может получить
-отсутствующие модели самостоятельно, но этот путь не закрепляет ревизию весов.
+If the check passes, proceed to the round-trip.
+By default, `env.sh` sets the source to `hf` and the cache root to
+`models/magenta_rt_cache/`. On the first run, Magenta may fetch
+missing models itself, but this path does not pin the weights revision.
 
-Для повторного получения утраченных весов или другого рабочего каталога
-используйте ревизию Hugging Face, записанную в метаданных исходного кеша:
+To re-download lost weights or use a different working directory,
+use the Hugging Face revision recorded in the source cache metadata:
 
 ```bash
 python - <<'PY'
@@ -80,27 +80,27 @@ PY
 sha256sum -c docs/source-model.sha256
 ```
 
-Ожидаемая структура: `models/magenta_rt_cache/assets/savedmodels/ssv2_48k_stereo/`,
-внутри — `encoder/`, `decoder/`, `quantizer/` с SavedModel и переменными.
-Можно перенести этот полный каталог из подготовленного окружения вместо
-повторной загрузки. Проверка checksum выше использует стандартное расположение.
+Expected structure: `models/magenta_rt_cache/assets/savedmodels/ssv2_48k_stereo/`,
+containing `encoder/`, `decoder/`, and `quantizer/` with SavedModel and variables.
+You can copy this complete directory from a prepared environment instead of
+downloading it again. The checksum check above uses the standard location.
 
-Для другого кеша задайте `MAGENTA_RT_CACHE_DIR` до подключения `env.sh`.
-Переменные кеша и источника должны быть установлены до импорта Magenta.
-Не создавайте пустые каталоги моделей вручную: Magenta может принять
-существующий каталог за уже загруженный asset.
+For a different cache, set `MAGENTA_RT_CACHE_DIR` before sourcing `env.sh`.
+The cache and source variables must be set before importing Magenta.
+Do not create empty model directories manually: Magenta may treat
+an existing directory as an already downloaded asset.
 
-После этого доступен [Python round-trip](roundtrip.md). C++ и Android
-для него не нужны.
+After that, the [Python round-trip](roundtrip.md) is available. C++ and Android
+are not needed for it.
 
-## 4. Зависимости C++ — при необходимости
+## 4. C++ Dependencies — If Needed
 
-TensorFlow Lite **не скачивается автоматически**: CMake ожидает локальные
-исходники TensorFlow. Подтверждённая локальная версия — v2.18.0,
+TensorFlow Lite is **not downloaded automatically**: CMake expects local
+TensorFlow sources. The confirmed local version is v2.18.0,
 commit `6550e4bd80223cdb8be6c3afd1f81e86a4d433c3`.
-Версия Python TensorFlow при этом 2.20.0 — это разные компоненты.
+The Python TensorFlow version is 2.20.0 — these are different components.
 
-На чистом клоне:
+On a clean clone:
 
 ```bash
 mkdir -p decoder_cpp/third_party
@@ -111,9 +111,9 @@ test "$(git -C decoder_cpp/third_party/tensorflow rev-parse HEAD)" = \
   6550e4bd80223cdb8be6c3afd1f81e86a4d433c3
 ```
 
-CMake скачивает дополнительные зависимости, включая PocketFFT. В CMake
-PocketFFT привязан к ветке `cpp`; наблюдаемая рабочая ревизия —
-`c90e55b3d529f8efa40ed01a20de22405f45fc65`. Для явного закрепления:
+CMake downloads additional dependencies, including PocketFFT. In CMake,
+PocketFFT is pinned to the `cpp` branch; the observed working revision is
+`c90e55b3d529f8efa40ed01a20de22405f45fc65`. To pin it explicitly:
 
 ```bash
 git clone https://github.com/mreineck/pocketfft.git \
@@ -126,12 +126,12 @@ cmake -S decoder_cpp -B decoder_cpp/build \
 cmake --build decoder_cpp/build -j4
 ```
 
-Для уже настроенной рабочей копии достаточно обычных команд сборки из
-[README декодера](../decoder_cpp/README.md). Исходники в `third_party/`
-исключены из Git. Для декодирования также нужны
-[экспортированные assets](model-export.md) — они **не включены в Git**,
-а сборка C++ их не создаёт. Их нужно экспортировать или скачать отдельно.
+For an already configured working copy, the regular build commands from the
+[decoder README](../decoder_cpp/README.md) are sufficient. Sources in `third_party/`
+are excluded from Git. Decoding also requires
+[exported assets](model-export.md) — they are **not included in Git**,
+and the C++ build does not create them. They must be exported or downloaded separately.
 
-Контрольные суммы исходного набора весов и runtime assets сохранены для
-проверки после загрузки: `docs/source-model.sha256`,
-`docs/runtime-assets.sha256` и `docs/packaged-weights.sha256`.
+Checksums for the source weight set and runtime assets are kept for
+verification after download: `docs/source-model.sha256`,
+`docs/runtime-assets.sha256`, and `docs/packaged-weights.sha256`.
