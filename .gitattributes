@@ -4,3 +4,11 @@ gradlew text eol=lf
 *.bat text eol=crlf
 *.jar binary
 *.png binary
+*.tflite binary
+*.onnx binary
+*.pb binary
+*.f32 binary
+*.npy binary
+*.npz binary
+variables.data-* binary
+variables.index binary

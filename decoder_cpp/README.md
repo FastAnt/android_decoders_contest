@@ -8,7 +8,7 @@ Fast, portable SpectroStream neural codec decoder for Linux and Android.
 - C++20 compiler (GCC 12+ or Clang 15+)
 - Local TensorFlow Lite sources in `third_party/tensorflow/` (tested: TensorFlow v2.18.0)
 - Internet connection for additional dependencies on first configure
-- Exported model/codebooks/window for decoding; they are excluded from Git
+- Exported model/codebooks/window for decoding; the standard core assets are included in Git
 
 ## Build (Linux x86-64)
 

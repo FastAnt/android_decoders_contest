@@ -13,7 +13,9 @@ NDK и устройство или эмулятор `arm64-v8a` с Android API 2
 обновить зависимости, закреплённые самим Flutter; такие изменения проверяйте
 и фиксируйте отдельно от изменения документации.
 
-Перед запуском восстановите локальные ресурсы, исключённые из Git:
+Исходники Flutter/Android, Gradle Wrapper и перечисленные ниже TFLite/F32
+assets включены в Git. Нативные `.so` и демотрек остаются локальными;
+перед запуском подготовьте их:
 
 - `../media/client_android/demo.mp3` и `demo.sst` — демотрек и его токены.
   Файлы в `assets/audio/demo.mp3` и `assets/spectrostream/demo.sst`
@@ -23,7 +25,8 @@ NDK и устройство или эмулятор `arm64-v8a` с Android API 2
   `spectrostream_decoder_core_fp16_f25.tflite`,
   `spectrostream_decoder_core_fp16_f75.tflite`,
   `spectrostream_decoder_core_fp16_f100.tflite`, `rvq_codebooks.f32`
-  и `istft_window_f960.f32` из `../decoder_cpp/models/`.
+  и `istft_window_f960.f32`. Эти файлы уже включены в Git,
+  а канонический набор также хранится в `../decoder_cpp/models/`.
 - `android/app/src/main/jniLibs/arm64-v8a/` — `libspectrostream_decoder.so`
   из Android-сборки декодера и `libc++_shared.so` из соответствующего NDK.
 
