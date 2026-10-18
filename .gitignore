@@ -1,0 +1,55 @@
+# Local media: source audio, tokens, decoded WAVs, images and videos
+/media/
+
+# Downloaded model weights and external dependencies
+/models/
+/third_party/
+/decoder_cpp/models/
+/decoder_cpp/third_party/
+/client_android/assets/spectrostream/*.tflite
+/client_android/assets/spectrostream/*.f32
+
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# CMake, Flutter, Android and native build artifacts
+build/
+build-*/
+.cxx/
+.gradle/
+.kotlin/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.o
+*.a
+*.so
+*.so.*
+*.apk
+*.aab
+coverage/
+
+# Local editor, agent and machine settings
+.idea/
+*.iml
+*.ipr
+*.iws
+.claude/
+/client_android/.vscode/
+/client_android/decoder_cpp
+local.properties
+.env
+.env.*
+!.env.example
+*.log
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

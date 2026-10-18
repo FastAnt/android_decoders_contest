@@ -1,0 +1,7 @@
+build/
+build-android-*/
+third_party/kleidiai/
+models/
+*.wav
+benchmark_results/
+thermal_*.txt
