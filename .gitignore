@@ -12,6 +12,8 @@
 /client_android/assets/spectrostream/*.npy
 /client_android/assets/spectrostream/*.pb
 /client_android/assets/sage/*.tflite
+# The SAGE rung-128 decoder is intentionally included under CC BY-NC-SA 4.0.
+!/client_android/assets/sage/dec_w8a8.tflite
 /client_android/assets/sage/*.f32
 /client_android/assets/sage/*.npy
 /client_android/assets/sage/*.pb

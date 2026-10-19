@@ -85,14 +85,17 @@ HISTORY view is filled by real runs; it is not a mock.
 ## Which files are in Git
 
 The repository keeps source code, configuration, documentation, tests,
-app icons, and a small generated demo track:
+app icons, a small generated demo track, and the SAGE rung-128 decoder weights:
 `client_android/assets/audio/demo.mp3`,
-`client_android/assets/spectrostream/demo.sst`, and
-`client_android/assets/sage/demo.sage`.
+`client_android/assets/spectrostream/demo.sst`,
+`client_android/assets/sage/demo.sage`, and
+`client_android/assets/sage/dec_w8a8.tflite`.
 
-Binary weights and exported models **are not stored in Git**: the source
-SpectroStream SavedModels are downloaded from Hugging Face, while the TFLite core models,
-codebooks, and the iSTFT window are exported according to the
+The SAGE weights are distributed under **CC BY-NC-SA 4.0**, not Apache-2.0;
+see [WEIGHTS.md](WEIGHTS.md) for attribution, modifications, checksum, and
+scope. SpectroStream weights and exported models **are not stored in Git**: the
+source SavedModels are downloaded from Hugging Face, while the TFLite core
+models, codebooks, and the iSTFT window are exported according to the
 [instructions](docs/model-export.md) or downloaded separately. Links and
 checksums are in [models/README.md](models/README.md),
 [docs/source-model.sha256](docs/source-model.sha256), and
@@ -134,7 +137,9 @@ for current commands, use the guides above and [validation](docs/validation.md).
 ## License
 
 Original code and documentation in this repository are licensed under the
-[Apache License 2.0](LICENSE). The demo track is a generated asset included for
-demonstration. Model weights are not redistributed here; see
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for upstream attribution and
-model terms.
+[Apache License 2.0](LICENSE). The SAGE rung-128 model weights are a separate
+work distributed under [CC BY-NC-SA 4.0](LICENSES/CC-BY-NC-SA-4.0.txt), not
+Apache-2.0; attribution and modification details are in [WEIGHTS.md](WEIGHTS.md).
+The demo track is a generated asset included for demonstration. SpectroStream
+weights are not redistributed here; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+for upstream attribution and model terms.

@@ -28,11 +28,11 @@ native `.so` files must be prepared before building:
   `istft_window_f960.f32`. These files are **not tracked in Git**: export them
   as described in [../docs/model-export.md](../docs/model-export.md) and copy
   them here.
-- `assets/sage/` — `dec_w8a8.tflite` (SAGE rung 128, int8). This model is also
-  **not tracked in Git**; the link to the upstream SAGE project and the
-  preparation steps are in [assets/sage/README.md](assets/sage/README.md).
-  `demo.sage` is already included. SAGE uses
-  `com.google.ai.edge.litert:litert:2.3.0` and Kotlin 2.4.
+- `assets/sage/` — `dec_w8a8.tflite` (SAGE rung 128, int8) is included under
+  **CC BY-NC-SA 4.0**, not Apache-2.0. See
+  [assets/sage/README.md](assets/sage/README.md) and
+  [../WEIGHTS.md](../WEIGHTS.md) for attribution and terms. `demo.sage` is also
+  included. SAGE uses `com.google.ai.edge.litert:litert:2.3.0` and Kotlin 2.4.
 - `android/app/src/main/jniLibs/arm64-v8a/` — `libspectrostream_decoder.so`
   from the Android build of the decoder and `libc++_shared.so` from the
   matching NDK.

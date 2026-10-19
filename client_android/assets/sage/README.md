@@ -1,17 +1,21 @@
 # SAGE runtime model
 
-`demo.sage` is a small generated demo track included in this repository. The
-SAGE decoder model `dec_w8a8.tflite` is **not stored here**.
+`dec_w8a8.tflite` is the SAGE rung-128 decoder used by the Android client.
+It is a LiteRT/TFLite export of `SAGE_FTe992` with int8 weights and a sliced
+post-net.
 
-The SAGE decoder is a LiteRT export of the `SAGE_FTe992` Swin-V2 decoder. The
-original model and export tooling are available from the upstream SAGE
-project:
+The model is **included in this repository** under **CC BY-NC-SA 4.0**, not
+under the Apache-2.0 license of the code:
 
-- <https://github.com/francescobrigante/SAGE>
-- Code license: MIT (Francesco Brigante)
+- Original: `SAGE_FTe992` by Francesco Brigante
+- Source: <https://huggingface.co/francescobrigante/SAGE>
+- License: <https://creativecommons.org/licenses/by-nc-sa/4.0/>
+- Local license text: [../../../LICENSES/CC-BY-NC-SA-4.0.txt](../../../LICENSES/CC-BY-NC-SA-4.0.txt)
+- Attribution, modifications and checksum: [../../../WEIGHTS.md](../../../WEIGHTS.md)
 
-Place the exported `dec_w8a8.tflite` (rung 128) in this directory before
-building the Android app. The app's `SageBridge` expects it at
-`assets/sage/dec_w8a8.tflite`; `AssetInstaller` copies it to app storage.
+`SageBridge` expects the model at `assets/sage/dec_w8a8.tflite`;
+`AssetInstaller` copies it to app storage. `demo.sage` is a small generated
+demo track included in the repository.
 
-Check the license of the checkpoint/model weights before redistributing them.
+This model is non-commercial and share-alike. For commercial use, obtain
+separate permission from the original rights holder.
