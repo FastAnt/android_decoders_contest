@@ -1,7 +1,9 @@
 # What Has Been Verified
 
-Date: 2026-10-18. The validation was performed in an existing prepared working
-copy, after reorganizing media and updating documentation.
+Date: 2026-10-18. Updated 2026-10-25 with the SAME-S integration and the
+on-device Samsung SM-S931B run. The earlier validation was performed in an
+existing prepared working copy, after reorganizing media and updating
+documentation.
 
 ## Environment and Model Provenance
 
@@ -71,6 +73,67 @@ verification; the log and JSON report are kept in `media/docs-smoke/`.
   The new SDK temporarily updated five SDK dependencies; the original `pubspec.lock`
   was restored, and the dependency update was not included in the documentation change.
 
+## SAME-S Integration (2026-10-25)
+
+- Generated `client_android/assets/same/demo.same` from the checked-in
+  `demo.mp3` with the SAME-S encoder (`int8-pc`, zlib, tflite-w8a8 backend):
+  343,565 bytes, 20.57 kbit/s, 1,440 stored / 1,439 valid latent frames,
+  12 chunks, 5,892,096 original samples (133.607619 s).
+- The decoded length matches `client_android/assets/sage/demo.sage`
+  (5,892,096 samples), so MP3/SAGE/SAME-S use the same source duration.
+- Python reference decoder restored 5,892,096 samples, peak 0.977, no errors.
+- Sliced model `dec_w8a8_s128.tflite` (81,517,872 bytes) was compared with the
+  full `dec_w8a8.tflite` export on the same `(1,256,128)` window; the `s128`
+  outputs are bit-identical (maxdiff 0.0).
+- `flutter analyze --no-pub` and `flutter test --no-pub` pass with the new
+  SAME-S mode and Dart service.
+- A debug APK was built successfully with the SAME-S model and demo container
+  bundled (`assets/flutter_assets/assets/same/`); the debug APK is about 886 MB.
+
+On-device (Samsung SM-S931B, Android 15, 2026-10-25):
+
+- Installed the debug APK; Settings exposes `NEURAL SAME-S`; applying it loads
+  `same_xnnwc_81517872.bin`, initializes LiteRT with `rungs=[128]`, and applies
+  CPU affinity (`affinity(8) -> 0`).
+- Playback reaches `STREAM DONE (SAME-S, 12 CHUNKS)`; all 13 decoder windows
+  are emitted, with exact total length 5,892,096 frames.
+- Time to playback after the measurement fix: 1.055 s (first run), 0.907 s,
+  0.902 s, 1.246 s (later mode-switch run), and 0.977 s (final run); median
+  0.977 s. The same corrected metric gives SAGE 0.984 s, SpectroStream f25
+  0.971 s, and MP3 7.422 s (the 5.35 MB asset is downloaded in full under the
+  Typical 6 Mbit/s simulation).
+- PSS: 608 MB with SAME-S loaded, 640–656 MB after later runs, and 429 MB after
+  switching from SpectroStream back to SAME-S (the previous decoder was
+  released). SAGE was 1,119.6 MB and SpectroStream 1,069.8 MB in the same
+  process.
+- `AudioTrack` was initialized and the player reached the playing state; no
+  crash or OOM occurred while switching SAME-S → SAGE → SpectroStream → SAME-S.
+- A separate 3-codec × {T1/C1, T2/C2} matrix (3 repeats each, Typical network)
+  was recorded in HISTORY: SpectroStream 2.137/1.747 s, SAGE 1.360/0.954 s,
+  SAME-S 1.576/1.091 s (avg, T1/C1 then T2/C2); see
+  [codec-speed-1c2t.md](codec-speed-1c2t.md).
+- Decoder-only 4 s PCM at T2/C1 (2 threads on 1 core): SAME-S 0.611 s
+  (6.5× realtime), SAGE 1.329 s (3.0×), SpectroStream 6.043 s (0.66×, slower
+  than realtime); see [decode-4s-2t1c.md](decode-4s-2t1c.md).
+
+Measurement fix (applies to all modes):
+
+- `AudioPlayerService` previously awaited `just_audio`'s `play()` future, which
+  completes when playback finishes/pauses; the timer therefore included the
+  first chunk. It now calls `play()` without awaiting it and waits for
+  `playing + ready/completed`. The old Tensor G2 app-level startup values are
+  historical and not directly comparable.
+- The MP3 branch did not update its status label, so it stayed at `PREPARING`
+  even after the timer stopped; the label is now `STREAMING (MP3)`.
+
+Not confirmed by this run:
+
+- Android-vs-Python PCM comparison for this integration and subjective audio
+  quality; acoustic output was not captured with a microphone.
+- Battery/energy, thermal soak, release builds, low-end SoCs, and a clean-clone
+  Android build.
+- MP3 PSS and a separate MP3 quality check.
+
 ## What This Validation Does Not Confirm
 
 A fresh installation of the Python environment and a download of weights/sources
@@ -79,7 +142,8 @@ in [setup.md](setup.md); checksums of the local source weights and
 the main runtime set were verified.
 
 GPU encoding, a new Android APK, actual playback on a device,
-long-running load tests, and audio quality metrics were not part of this run.
+long-running load tests, and audio quality metrics were not part of the
+2026-10-18 run. The 2026-10-25 SAME-S on-device run is described above.
 The widget test does not confirm FFI or audio output. The completeness of the
 Gradle Wrapper distribution for a clean clone is noted in the
 [client README](../client_android/README.md).

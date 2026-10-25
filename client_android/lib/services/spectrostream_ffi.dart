@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
-import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 
 class NeuralDecodeRequest {
   const NeuralDecodeRequest({
@@ -494,6 +494,7 @@ class _DecoderWorkerState {
   }
 
   Map<String, Object?> _decodeNext() {
+    final stopwatch = Stopwatch()..start();
     final pcmOut = calloc<Pointer<Float>>();
     final frameOut = calloc<Int64>();
     final sampleRateOut = calloc<Int32>();
@@ -538,6 +539,12 @@ class _DecoderWorkerState {
         final sampleCount = frameCount * channels;
         pcm = Float32List.fromList(nativePcm.asTypedList(sampleCount));
       }
+
+      stopwatch.stop();
+      debugPrint(
+        '[spect] block=$currentBlockIndex/$totalBlocks '
+        'frames=$frameCount decode=${stopwatch.elapsedMilliseconds}ms done=$done',
+      );
 
       return {
         'pcm': pcm,

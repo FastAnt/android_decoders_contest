@@ -38,6 +38,12 @@ class SageBridge(context: Context, messenger: BinaryMessenger) :
 
     private external fun nativeSetAffinity(numCores: Int): Int
 
+    /**
+     * Applies the CPU-affinity mask on the calling thread. Exposed so other
+     * bridges can reuse the JNI symbol, which is bound to this class name.
+     */
+    fun applyAffinity(cores: Int): Int = nativeSetAffinity(cores)
+
     private val appContext = context.applicationContext
     private val channel = MethodChannel(messenger, CHANNEL)
     private val executor = Executors.newSingleThreadExecutor { runnable ->
@@ -154,6 +160,11 @@ class SageBridge(context: Context, messenger: BinaryMessenger) :
             interleaved.putFloat(chunk[1][index])
         }
         val done = active.nextWindowIndex >= active.windowCount
+        Log.i(
+            "SageBridge",
+            "chunk frames=$frames windows=${active.stats.windowsDecoded}/" +
+                "${active.windowCount} last=${active.stats.lastWindowMs}ms done=$done",
+        )
         return mapOf(
             "pcm" to interleaved.array(),
             "frameCount" to frames,

@@ -1,8 +1,8 @@
 # Model weights and licenses
 
-This repository contains **code** and **one model weight file** with different
+This repository contains **code** and **two model weight files** with different
 licenses. The root [LICENSE](LICENSE) (Apache-2.0) covers the original code and
-documentation only. It does **not** cover the SAGE model weights.
+documentation only. It does **not** cover the SAGE or SAME-S model weights.
 
 ## Included: SAGE rung-128 decoder
 
@@ -35,6 +35,51 @@ CC BY-NC-SA 4.0 terms.
 
 This is a summary for repository hygiene, not legal advice. For a commercial
 use case, obtain the appropriate permission from the original rights holder.
+
+## Included: SAME-S s128 decoder
+
+| Field | Value |
+|---|---|
+| File | `client_android/assets/same/dec_w8a8_s128.tflite` |
+| Size | 81,517,872 bytes |
+| SHA-256 | `7802697d21c67968974c117626da42e55bf0dd250126e0be9a4cfe86245e0ef6` |
+| Original work | SAME-S by Stability AI |
+| Original source | <https://huggingface.co/stabilityai/SAME-S> (revision `63a63b7193ee9b6ee9836776c5f3c52a2f9600df`) |
+| Upstream code | <https://github.com/Stability-AI/stable-audio-3> |
+| License | Stability AI Community License |
+| Local license text | [LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt](LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt) |
+
+**Modifications:** the original checkpoint was exported to LiteRT/TFLite with
+int8 W8A8 weights (`dec_w8a8.tflite`, 89,329,616 bytes, SHA-256
+`90cad5ef81e6b18eb205012aee03bc53ed59e1c17033b79a84a4612674b1e03a`), and the
+`s128` decoder signature was sliced out for the Android client. On the same
+input window the sliced model's output is bit-identical to the full export's
+`s128` signature (measured maxdiff 0.0). The TFLite export and the slice are
+adaptations of the original model and remain under the Stability AI Community
+License.
+
+This Stability AI Model is licensed under the Stability AI Community License,
+Copyright © Stability AI Ltd. All Rights Reserved.
+
+**Powered by Stability AI.**
+
+### What the license means for these weights
+
+- **Research / non-commercial:** free use, including evaluation and testing.
+- **Commercial:** allowed under the Community License up to the stated annual
+  revenue threshold, but registration with Stability AI is required; above the
+  threshold a separate commercial license is needed.
+- **Distribution:** provide a copy of the agreement, retain the attribution
+  notice above, and prominently display “Powered by Stability AI” in the UI or
+  product documentation.
+- **Derivative works:** indicate that the model was changed and how (here:
+  LiteRT W8A8 export and s128 slice).
+- **Trademarks:** do not use Stability AI names or marks except as required by
+  the license.
+
+This is a summary for repository hygiene, not legal advice. See the full
+license text and <https://stability.ai/community-license> for the authoritative
+terms.
 
 ## Not included: SpectroStream weights
 

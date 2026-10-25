@@ -1,9 +1,11 @@
 # Neural Codecs
 
-An experiment with Google SpectroStream from Magenta RealTime: audio is encoded
-into SST tokens, then decoded on the CPU to WAV or played back by a
-Flutter client on Android. The working audio format is 48 kHz stereo.
-This is a lossy codec: the reconstructed WAV does not match the original bit-for-bit.
+An experiment with neural audio codecs on Android: Google SpectroStream from
+Magenta RealTime, SAGE, and Stability AI SAME-S. SpectroStream audio is encoded
+into SST tokens and decoded on the CPU; SAGE and SAME-S use their own `.sage` and
+`.same` containers and LiteRT decoders. SpectroStream works at 48 kHz stereo;
+SAGE and SAME-S at 44.1 kHz. All are lossy: the reconstructed WAV does not match
+the original bit-for-bit.
 
 ## Getting started
 
@@ -26,7 +28,7 @@ There is also a brief entry point for agents: [AGENTS.md](AGENTS.md).
   `--verify-depths` selects RVQ depths 16, 32, and 64.
 - The C++ CLI independently reads SST, verifies the CRC, and decodes to PCM16 WAV
   using TFLite/XNNPACK. A C API is available for Flutter FFI and streaming decoding.
-- The Flutter app compares MP3, SpectroStream, and SAGE startup time
+- The Flutter app compares MP3, SpectroStream, SAGE, and SAME-S startup time
   across network profiles, model choices, worker threads, and CPU affinity.
 
 SST stores tokens, but not decoder weights. Reconstruction requires a compatible
@@ -41,16 +43,29 @@ tables, and caveats are in [docs/performance.md](docs/performance.md).
 
 | Mode | Payload | Bitrate | RTF / time to playback |
 |---|---:|---:|---:|
-| MP3 | 5.35 MB | 320 kbit/s | — |
+| MP3 | 5.35 MB | 320 kbit/s | 7.42 s to playback (S25, simulated 6 Mbit/s) |
 | SpectroStream f25 | 269.5 KB | 16.1 kbit/s | RTF 1.51 (T6/C8, full track) |
 | SAGE r128 | 172.5 KB | 10.3 kbit/s | RTF 0.46 (4 threads); app startup 5.90 s |
+| SAME-S r128 | 343.6 KB | 20.6 kbit/s | RTF 0.09 (4 threads, reference); app startup 0.90–1.25 s (S25) |
 
 ![Payload comparison](docs/images/benchmark-payload.png)
+
+*The payload figure predates the SAME-S addition; the table above includes its
+343.6 KB / 20.6 kbit/s payload.*
 
 SpectroStream thread scaling saturates around four workers on this device;
 `CORES` constrains affinity but does not add throughput beyond the useful thread
 count. SAGE rung 128 is the better mobile trade-off than rung 256 in both
-startup latency and memory.
+startup latency and memory. SAME-S has the lowest decode RTF of the three but a
+larger payload and model than SAGE; its in-app startup needs a device run.
+
+On a Samsung SM-S931B (Android 15, debug build, T6/C8, Typical 6 Mbit/s) the
+corrected app-level startup was 0.971 s for SpectroStream f25, 0.984 s for
+SAGE r128, 0.902–1.246 s for SAME-S r128, and 7.422 s for MP3 (full 5.35 MB
+download under the simulated 6 Mbit/s profile). The app-level Tensor G2 values in
+the table predate the 2026-10-25 startup-metric fix (they included the first
+chunk's playback); see [the SAME-S device report](docs/same-s-device-report.md) and the
+[1-core / 2-thread codec matrix](docs/codec-speed-1c2t.md).
 
 ![SpectroStream scaling](docs/images/benchmark-spectrostream-scaling.png)
 ![SAGE trade-off](docs/images/benchmark-sage.png)
@@ -69,6 +84,9 @@ cores, plus the square payload visualization.*
 The screenshots come from the debug app on the AAOS/Tensor G2 device. The
 HISTORY view is filled by real runs; it is not a mock.
 
+SAME-S on-device screenshots: [main screen](docs/images/app-same-s-main.png)
+and [HISTORY](docs/images/app-same-s-history.png).
+
 ## Structure
 
 - `encoder_service/` — Python encoder and exporters; [CLI options](encoder_service/README.md).
@@ -85,14 +103,17 @@ HISTORY view is filled by real runs; it is not a mock.
 ## Which files are in Git
 
 The repository keeps source code, configuration, documentation, tests,
-app icons, a small generated demo track, and the SAGE rung-128 decoder weights:
-`client_android/assets/audio/demo.mp3`,
+app icons, a small generated demo track, and the SAGE and SAME-S decoder
+weights: `client_android/assets/audio/demo.mp3`,
 `client_android/assets/spectrostream/demo.sst`,
-`client_android/assets/sage/demo.sage`, and
-`client_android/assets/sage/dec_w8a8.tflite`.
+`client_android/assets/sage/demo.sage`,
+`client_android/assets/sage/dec_w8a8.tflite`,
+`client_android/assets/same/demo.same`, and
+`client_android/assets/same/dec_w8a8_s128.tflite`.
 
-The SAGE weights are distributed under **CC BY-NC-SA 4.0**, not Apache-2.0;
-see [WEIGHTS.md](WEIGHTS.md) for attribution, modifications, checksum, and
+The SAGE weights are distributed under **CC BY-NC-SA 4.0**, and the SAME-S
+weights under the **Stability AI Community License**; neither is Apache-2.0.
+See [WEIGHTS.md](WEIGHTS.md) for attribution, modifications, checksums, and
 scope. SpectroStream weights and exported models **are not stored in Git**: the
 source SavedModels are downloaded from Hugging Face, while the TFLite core
 models, codebooks, and the iSTFT window are exported according to the
@@ -140,6 +161,10 @@ Original code and documentation in this repository are licensed under the
 [Apache License 2.0](LICENSE). The SAGE rung-128 model weights are a separate
 work distributed under [CC BY-NC-SA 4.0](LICENSES/CC-BY-NC-SA-4.0.txt), not
 Apache-2.0; attribution and modification details are in [WEIGHTS.md](WEIGHTS.md).
+The included SAME-S weights are distributed under the
+[Stability AI Community License](LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt),
+also not Apache-2.0; see [WEIGHTS.md](WEIGHTS.md) and
+[assets/same/README.md](client_android/assets/same/README.md).
 The demo track is a generated asset included for demonstration. SpectroStream
 weights are not redistributed here; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
 for upstream attribution and model terms.

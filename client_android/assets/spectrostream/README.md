@@ -19,4 +19,4 @@ files here:
 
 `demo.sst` is a small generated demo track included in this repository. It is
 encoded with the 64-layer SpectroStream model from the same source audio as the
-MP3 and SAGE demo.
+MP3, SAGE, and SAME-S demos.

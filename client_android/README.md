@@ -1,9 +1,9 @@
 # Neural Codecs Android Client
 
-A Flutter application for comparing the startup time of MP3, SpectroStream, and
-SAGE. SpectroStream is decoded through `dart:ffi` and the C++ runtime; SAGE goes
-through a Kotlin bridge to LiteRT. The app exposes network profiles, a
-SpectroStream model selector, and CPU thread counts.
+A Flutter application for comparing the startup time of MP3, SpectroStream,
+SAGE, and SAME-S. SpectroStream is decoded through `dart:ffi` and the C++
+runtime; SAGE and SAME-S go through Kotlin bridges to LiteRT. The app exposes
+network profiles, a SpectroStream model selector, and CPU thread counts.
 
 ## Prerequisites
 
@@ -17,9 +17,9 @@ and commit them separately from documentation changes.
 Flutter/Android sources and the Gradle Wrapper are stored in Git. Models and
 native `.so` files must be prepared before building:
 
-- `assets/audio/demo.mp3`, `assets/spectrostream/demo.sst`, and
-  `assets/sage/demo.sage` — a small generated demo track already included in
-  the repository. All three modes use the same track.
+- `assets/audio/demo.mp3`, `assets/spectrostream/demo.sst`,
+  `assets/sage/demo.sage`, and `assets/same/demo.same` — a small generated demo
+  track already included in the repository. All four modes use the same track.
 - `assets/spectrostream/` — `spectrostream_decoder_core_fp32_f25.tflite`,
   `spectrostream_decoder_core_fp32_f75.tflite`,
   `spectrostream_decoder_core_fp16_f25.tflite`,
@@ -33,6 +33,11 @@ native `.so` files must be prepared before building:
   [assets/sage/README.md](assets/sage/README.md) and
   [../WEIGHTS.md](../WEIGHTS.md) for attribution and terms. `demo.sage` is also
   included. SAGE uses `com.google.ai.edge.litert:litert:2.3.0` and Kotlin 2.4.
+- `assets/same/` — `dec_w8a8_s128.tflite` (SAME-S rung 128, W8A8) and
+  `demo.same`. The weights are included under the **Stability AI Community
+  License**, not Apache-2.0; see
+  [assets/same/README.md](assets/same/README.md) and
+  [../WEIGHTS.md](../WEIGHTS.md). “Powered by Stability AI.”
 - `android/app/src/main/jniLibs/arm64-v8a/` — `libspectrostream_decoder.so`
   from the Android build of the decoder and `libc++_shared.so` from the
   matching NDK.
@@ -56,9 +61,10 @@ CORES` makes sense; with more threads, they share the same cores.
 
 The app demonstrates a pre-prepared track rather than acting as an arbitrary
 file player. The demo track is already at `assets/audio/demo.mp3`,
-`assets/spectrostream/demo.sst`, and `assets/sage/demo.sage`. For your own track,
-prepare an MP3, a SpectroStream SST, and a SAGE container and place them under
-these names; all three modes must use the same source.
+`assets/spectrostream/demo.sst`, `assets/sage/demo.sage`, and
+`assets/same/demo.same`. For your own track, prepare an MP3, a SpectroStream
+SST, a SAGE container, and a SAME-S container and place them under these names;
+all four modes must use the same source.
 
 In `lib/services/asset_installer.dart`, the SST duration is hardcoded as
 `_sstDurationSeconds = 133.607625`; for your own demo track it must be
@@ -87,11 +93,22 @@ When switching Flutter SDK, run `flutter pub get` first: the saved
 compilation errors inside Flutter even though `flutter analyze` passes. Do not
 move `.dart_tool/` and `build/` between machines.
 
+HISTORY keeps up to 40 runs and starts with a summary of all runs grouped by
+codec, model, `THREADS`/`CORES`, and network profile.
+
 The widget test checks that the screen exists; it does not confirm actual
-playback, FFI operation, or Android APK correctness. The current
-[validation results](../docs/validation.md) describe this boundary.
+playback, FFI/LiteRT operation, or Android APK correctness. The current
+[validation results](../docs/validation.md) describe this boundary. A debug APK
+with the SAME-S assets was built locally; a full Android build from a clean
+clone has not yet been confirmed.
+
+On-device SAME-S results on a Samsung SM-S931B are in
+[../docs/same-s-device-report.md](../docs/same-s-device-report.md). The startup
+timer waits for `just_audio`'s playing/ready state and does **not** await
+`play()` (that future completes at the end of playback). The old Tensor G2
+app-level startup numbers predate this fix.
 
 The Gradle Wrapper (`android/gradlew`, `android/gradlew.bat`,
 `android/gradle/wrapper/gradle-wrapper.jar`, and the wrapper settings) is
 included in Git. `local.properties`, Gradle caches, and build outputs remain
-local. A full Android build from a clean clone has not yet been confirmed.
+local.

@@ -9,6 +9,7 @@ import '../services/connection_measurement_service.dart';
 import '../services/network_simulator.dart';
 import '../services/network_profile_service.dart';
 import '../services/sage_decoder_service.dart';
+import '../services/same_decoder_service.dart';
 import '../services/spectrostream_ffi.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
@@ -41,6 +42,7 @@ class _DemoScreenState extends State<DemoScreen> {
   final SpectroStreamDecoderService _decoderService =
       SpectroStreamDecoderService.instance;
   final SageDecoderService _sageService = SageDecoderService.instance;
+  final SameDecoderService _sameService = SameDecoderService.instance;
 
   InstalledAssets? _installedAssets;
 
@@ -100,6 +102,7 @@ class _DemoScreenState extends State<DemoScreen> {
     unawaited(_audioService.dispose());
     unawaited(_decoderService.dispose());
     unawaited(_sageService.dispose());
+    unawaited(_sameService.dispose());
     super.dispose();
   }
 
@@ -142,34 +145,72 @@ class _DemoScreenState extends State<DemoScreen> {
       return;
     }
     final mode = _mode;
-    if (mode == DemoMode.mp3) {
-      unawaited(_sageService.release());
+    if (_isPreparing || _isPlaying || _isPaused) {
       return;
     }
 
-    // SAGE holds a large XNNPACK arena; release it when another mode is
-    // selected. The SpectroStream decoder is kept warm because f25 is small
-    // and is the default mode.
+    // Only one large neural decoder is kept alive. LiteRT arenas for SAGE and
+    // SAME-S and the SpectroStream native decoder are released when another
+    // mode is selected. Release failures are non-fatal: the selected codec is
+    // still warmed up below.
     if (mode != DemoMode.neuralSage) {
-      unawaited(_sageService.release());
+      try {
+        await _sageService.release();
+      } catch (_) {}
+    }
+    if (mode != DemoMode.neuralSameS) {
+      try {
+        await _sameService.release();
+      } catch (_) {}
+    }
+    if (mode != DemoMode.neuralSpect) {
+      try {
+        await _decoderService.dispose();
+      } catch (_) {}
+    }
+
+    if (mode == DemoMode.mp3) {
+      if (mounted) {
+        setState(() {
+          _backgroundDecodeStatus = 'IDLE';
+        });
+      }
+      return;
     }
 
     try {
-      if (mode == DemoMode.neuralSpect) {
-        await _decoderService.preloadDecoder(_buildNeuralRequest(assets));
-      } else {
-        await _sageService.preload(
-          modelPath: assets.sageModelPath,
-          threads: _threads,
-          cores: _cores,
-        );
+      switch (mode) {
+        case DemoMode.neuralSpect:
+          await _decoderService.preloadDecoder(_buildNeuralRequest(assets));
+          break;
+        case DemoMode.neuralSage:
+          await _sageService.preload(
+            modelPath: assets.sageModelPath,
+            threads: _threads,
+            cores: _cores,
+          );
+          break;
+        case DemoMode.neuralSameS:
+          await _sameService.preload(
+            modelPath: assets.sameModelPath,
+            threads: _threads,
+            cores: _cores,
+          );
+          break;
+        case DemoMode.mp3:
+          break;
       }
-      if (!mounted || _mode != mode || _isPreparing || _isPlaying) {
+      if (!mounted ||
+          _mode != mode ||
+          _isPreparing ||
+          _isPlaying ||
+          _isPaused) {
         return;
       }
       setState(() {
         _backgroundDecodeStatus = 'WARMUP DONE';
       });
+      debugPrint('[warmup] ${mode.name} T$_threads C$_cores done');
     } catch (e) {
       if (!mounted || _mode != mode) {
         return;
@@ -210,6 +251,15 @@ class _DemoScreenState extends State<DemoScreen> {
 
     if (result == null || !mounted) {
       return;
+    }
+
+    // Releasing the previous codec while a stream is active would abort the
+    // decode pump. Settings are applied only after a clean stop.
+    if (_isPreparing || _isPlaying || _isPaused) {
+      await _onStopPressed();
+      if (!mounted) {
+        return;
+      }
     }
 
     setState(() {
@@ -276,6 +326,7 @@ class _DemoScreenState extends State<DemoScreen> {
     await _audioService.stop();
     await _decoderService.resetSession();
     await _sageService.stop();
+    await _sameService.stop();
 
     final sessionId = ++_sessionId;
 
@@ -310,6 +361,7 @@ class _DemoScreenState extends State<DemoScreen> {
         DemoMode.mp3 => assets.mp3SizeBytes,
         DemoMode.neuralSpect => assets.sstSizeBytes,
         DemoMode.neuralSage => assets.sageSizeBytes,
+        DemoMode.neuralSameS => assets.sameSizeBytes,
       };
       final int startupThresholdBytes = transferSizeBytes;
       final int maxTransferBytes = transferSizeBytes;
@@ -349,6 +401,11 @@ class _DemoScreenState extends State<DemoScreen> {
       if (_mode == DemoMode.mp3) {
         await _audioService.playMp3Asset();
         await _audioService.waitForPlaybackStart();
+        if (_isSessionActive(sessionId)) {
+          setState(() {
+            _backgroundDecodeStatus = 'STREAMING (MP3)';
+          });
+        }
       } else if (_mode == DemoMode.neuralSpect) {
         final request = _buildNeuralRequest(assets);
 
@@ -380,7 +437,7 @@ class _DemoScreenState extends State<DemoScreen> {
         }
 
         await _audioService.waitForPlaybackStart();
-      } else {
+      } else if (_mode == DemoMode.neuralSage) {
         final firstChunk = await _sageService.start(
           modelPath: assets.sageModelPath,
           sagePath: assets.sagePath,
@@ -411,6 +468,40 @@ class _DemoScreenState extends State<DemoScreen> {
           _audioService.completeNeuralStream();
         } else {
           unawaited(_pumpSageStream(sessionId));
+        }
+
+        await _audioService.waitForPlaybackStart();
+      } else {
+        final firstChunk = await _sameService.start(
+          modelPath: assets.sameModelPath,
+          samePath: assets.samePath,
+          threads: _threads,
+          cores: _cores,
+        );
+        if (!_isSessionActive(sessionId)) {
+          return;
+        }
+
+        if (firstChunk.frameCount <= 0 || firstChunk.pcm.isEmpty) {
+          throw StateError('SAME-S STREAM RETURNED EMPTY FIRST BLOCK.');
+        }
+
+        await _audioService.playNeuralStream(
+          firstBlockPcm: firstChunk.pcm,
+          sampleRate: firstChunk.sampleRate,
+          channels: firstChunk.channels,
+        );
+
+        setState(() {
+          _backgroundDecodeStatus = firstChunk.decoderReused
+              ? 'STREAMING (SAME-S REUSED)'
+              : 'STREAMING (SAME-S LOADED)';
+        });
+
+        if (firstChunk.done) {
+          _audioService.completeNeuralStream();
+        } else {
+          unawaited(_pumpSameStream(sessionId));
         }
 
         await _audioService.waitForPlaybackStart();
@@ -486,6 +577,7 @@ class _DemoScreenState extends State<DemoScreen> {
     _sessionId += 1;
     await _decoderService.resetSession();
     await _sageService.stop();
+    await _sameService.stop();
     await _audioService.stop();
     if (!mounted) {
       return;
@@ -597,6 +689,51 @@ class _DemoScreenState extends State<DemoScreen> {
     }
   }
 
+  Future<void> _pumpSameStream(int sessionId) async {
+    int chunksDecoded = 0;
+
+    try {
+      while (_isSessionActive(sessionId)) {
+        final chunk = await _sameService.next();
+        if (!_isSessionActive(sessionId)) {
+          return;
+        }
+
+        if (chunk.frameCount > 0 && chunk.pcm.isNotEmpty) {
+          await _audioService.appendNeuralPcm(chunk.pcm);
+          chunksDecoded += 1;
+        }
+
+        if (chunk.done) {
+          _audioService.completeNeuralStream();
+          if (!_isSessionActive(sessionId)) {
+            return;
+          }
+          setState(() {
+            _backgroundDecodeStatus =
+                'STREAM DONE (SAME-S, $chunksDecoded CHUNKS)';
+          });
+          return;
+        }
+
+        if (chunksDecoded % 8 == 0 && mounted) {
+          setState(() {
+            _backgroundDecodeStatus =
+                'STREAM SAME-S ${chunk.windowsDecoded}/${chunk.windowCount}';
+          });
+        }
+      }
+    } catch (e) {
+      await _audioService.abortNeuralStream();
+      if (!_isSessionActive(sessionId)) {
+        return;
+      }
+      setState(() {
+        _backgroundDecodeStatus = 'SAME-S STREAM ERROR: $e';
+      });
+    }
+  }
+
   void _recordRun({required Duration elapsed, required int startupBytes}) {
     final run = RunHistoryEntry(
       mode: _mode,
@@ -608,9 +745,12 @@ class _DemoScreenState extends State<DemoScreen> {
       startupBytes: startupBytes,
     );
 
+    debugPrint(
+      '[run] ${_mode.name} T$_threads C$_cores ${elapsed.inMilliseconds}ms',
+    );
     setState(() {
       _recentRuns.add(run);
-      if (_recentRuns.length > 2) {
+      if (_recentRuns.length > 40) {
         _recentRuns.removeAt(0);
       }
     });
@@ -728,11 +868,10 @@ class _DemoScreenState extends State<DemoScreen> {
             DemoMode.mp3 => assets.mp3SizeBytes,
             DemoMode.neuralSpect => assets.sstSizeBytes,
             DemoMode.neuralSage => assets.sageSizeBytes,
+            DemoMode.neuralSameS => assets.sameSizeBytes,
           };
     final kbCounterColor = _kbCounterColor(_mode);
-    final modelLabel = _mode == DemoMode.neuralSage
-        ? 'SAGE R128'
-        : kNeuralModels[_modelPreset]!.label.toUpperCase();
+    final modelLabel = _mode.modelLabel(_modelPreset);
 
     return Scaffold(
       body: _loadingAssets
@@ -747,7 +886,7 @@ class _DemoScreenState extends State<DemoScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            'MP3 vs Neural Codec Startup Time',
+                            'MP3 vs Neural Codecs Startup Time',
                             style: TextStyle(
                               color: fg,
                               fontFamily: 'monospace',

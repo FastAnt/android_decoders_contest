@@ -1,4 +1,4 @@
-enum DemoMode { mp3, neuralSpect, neuralSage }
+enum DemoMode { mp3, neuralSpect, neuralSage, neuralSameS }
 
 extension DemoModeLabel on DemoMode {
   String get label {
@@ -9,6 +9,22 @@ extension DemoModeLabel on DemoMode {
         return 'NEURAL SPECT';
       case DemoMode.neuralSage:
         return 'NEURAL SAGE';
+      case DemoMode.neuralSameS:
+        return 'NEURAL SAME-S';
+    }
+  }
+}
+
+extension DemoModeModelLabel on DemoMode {
+  String modelLabel(NeuralModelPreset spectModel) {
+    switch (this) {
+      case DemoMode.neuralSage:
+        return 'SAGE R128';
+      case DemoMode.neuralSameS:
+        return 'SAME-S R128';
+      case DemoMode.mp3:
+      case DemoMode.neuralSpect:
+        return kNeuralModels[spectModel]!.label.toUpperCase();
     }
   }
 }

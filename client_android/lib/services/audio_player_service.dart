@@ -19,7 +19,9 @@ class AudioPlayerService {
   Future<void> playMp3Asset() async {
     await _resetNeuralChunks();
     await _player.setAsset('assets/audio/demo.mp3');
-    await _player.play();
+    // just_audio's play() future completes when playback finishes/pauses;
+    // awaiting it here would block the startup measurement until the track ends.
+    unawaited(_player.play());
   }
 
   Future<void> playNeuralStream({
@@ -37,7 +39,7 @@ class AudioPlayerService {
       channels: channels,
     );
     await _player.setAudioSources([AudioSource.uri(Uri.file(firstPath))]);
-    await _player.play();
+    unawaited(_player.play());
   }
 
   Future<void> appendNeuralPcm(Float32List pcm) async {
@@ -66,35 +68,28 @@ class AudioPlayerService {
   Future<void> waitForPlaybackStart({
     Duration timeout = const Duration(seconds: 5),
   }) async {
-    if (_player.playing && _player.position > Duration.zero) {
+    bool isReady(PlayerState state) {
+      return state.playing &&
+          (state.processingState == ProcessingState.ready ||
+              state.processingState == ProcessingState.completed);
+    }
+
+    if (isReady(_player.playerState)) {
       return;
     }
 
     final completer = Completer<void>();
-    late final StreamSubscription<Duration> positionSub;
     late final StreamSubscription<PlayerState> stateSub;
 
-    void completeIfReady() {
-      if (!completer.isCompleted &&
-          _player.playing &&
-          _player.position > Duration.zero) {
-        completer.complete();
-      }
-    }
-
-    positionSub = _player.positionStream.listen((_) => completeIfReady());
     stateSub = _player.playerStateStream.listen((state) {
-      if (state.playing && state.processingState == ProcessingState.completed) {
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
+      if (!completer.isCompleted && isReady(state)) {
+        completer.complete();
       }
     });
 
     try {
       await completer.future.timeout(timeout, onTimeout: () {});
     } finally {
-      await positionSub.cancel();
       await stateSub.cancel();
     }
   }
@@ -109,7 +104,7 @@ class AudioPlayerService {
   }
 
   Future<void> resume() async {
-    await _player.play();
+    unawaited(_player.play());
   }
 
   Future<void> dispose() async {

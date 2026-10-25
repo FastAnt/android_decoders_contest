@@ -19,6 +19,9 @@ class InstalledAssets {
     required this.sageModelPath,
     required this.sagePath,
     required this.sageSizeBytes,
+    required this.sameModelPath,
+    required this.samePath,
+    required this.sameSizeBytes,
   });
 
   final Directory rootDirectory;
@@ -32,6 +35,9 @@ class InstalledAssets {
   final String sageModelPath;
   final String sagePath;
   final int sageSizeBytes;
+  final String sameModelPath;
+  final String samePath;
+  final int sameSizeBytes;
 
   int get neuralFirstSecondBytes => (sstSizeBytes / sstDurationSeconds).ceil();
 }
@@ -55,13 +61,15 @@ class AssetInstaller {
     'assets/spectrostream/demo.sst': 'demo.sst',
     'assets/sage/dec_w8a8.tflite': 'sage_dec_w8a8.tflite',
     'assets/sage/demo.sage': 'demo.sage',
+    'assets/same/dec_w8a8_s128.tflite': 'same_dec_w8a8_s128.tflite',
+    'assets/same/demo.same': 'demo.same',
   };
 
   static const double _sstDurationSeconds = 133.607625;
 
-  /// Bump when a bundled model or demo file changes.  The install state is
-  /// keyed by this revision so an app update cannot keep an older SST/track.
-  static const int _assetRevision = 3;
+  /// Bump when a bundled model or demo file changes. The install state is
+  /// keyed by this revision so an app update cannot keep an older model/track.
+  static const int _assetRevision = 4;
 
   Future<InstalledAssets> ensureInstalled() async {
     final supportDir = await getApplicationSupportDirectory();
@@ -143,6 +151,9 @@ class AssetInstaller {
       sageModelPath: '${targetDir.path}/sage_dec_w8a8.tflite',
       sagePath: '${targetDir.path}/demo.sage',
       sageSizeBytes: installedSizes['demo.sage'] ?? 0,
+      sameModelPath: '${targetDir.path}/same_dec_w8a8_s128.tflite',
+      samePath: '${targetDir.path}/demo.same',
+      sameSizeBytes: installedSizes['demo.same'] ?? 0,
     );
   }
 

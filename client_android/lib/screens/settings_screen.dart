@@ -77,16 +77,7 @@ class _DemoSettingsScreenState extends State<DemoSettingsScreen> {
               _OptionWrap<DemoMode>(
                 values: DemoMode.values,
                 selected: _mode,
-                labelBuilder: (mode) {
-                  switch (mode) {
-                    case DemoMode.mp3:
-                      return 'MP3';
-                    case DemoMode.neuralSpect:
-                      return 'NEURAL SPECT';
-                    case DemoMode.neuralSage:
-                      return 'NEURAL SAGE';
-                  }
-                },
+                labelBuilder: (mode) => mode.label,
                 onSelected: (mode) => setState(() => _mode = mode),
                 borderColor: fg,
                 selectedBackground: selectedBg,
@@ -135,18 +126,44 @@ class _DemoSettingsScreenState extends State<DemoSettingsScreen> {
               const SizedBox(height: 20),
               _SectionLabel('MODEL', color: fg),
               const SizedBox(height: 8),
-              _OptionWrap<NeuralModelPreset>(
-                values: NeuralModelPreset.values,
-                selected: _modelPreset,
-                labelBuilder: (preset) =>
-                    kNeuralModels[preset]!.label.toUpperCase(),
-                onSelected: (preset) => setState(() => _modelPreset = preset),
-                borderColor: fg,
-                selectedBackground: selectedBg,
-                selectedForeground: selectedFg,
-                unselectedBackground: unselectedBg,
-                unselectedForeground: fg,
-              ),
+              if (_mode == DemoMode.neuralSage ||
+                  _mode == DemoMode.neuralSameS)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selectedBg,
+                    border: Border.all(color: fg, width: 2),
+                  ),
+                  child: Text(
+                    _mode == DemoMode.neuralSage
+                        ? 'SAGE R128'
+                        : 'SAME-S W8A8 R128',
+                    style: TextStyle(
+                      color: selectedFg,
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                )
+              else
+                _OptionWrap<NeuralModelPreset>(
+                  values: NeuralModelPreset.values,
+                  selected: _modelPreset,
+                  labelBuilder: (preset) =>
+                      kNeuralModels[preset]!.label.toUpperCase(),
+                  onSelected: (preset) =>
+                      setState(() => _modelPreset = preset),
+                  borderColor: fg,
+                  selectedBackground: selectedBg,
+                  selectedForeground: selectedFg,
+                  unselectedBackground: unselectedBg,
+                  unselectedForeground: fg,
+                ),
               const SizedBox(height: 20),
               _SectionLabel('THREADS', color: fg),
               const SizedBox(height: 8),

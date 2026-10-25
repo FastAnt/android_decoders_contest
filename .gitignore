@@ -17,6 +17,10 @@
 /client_android/assets/sage/*.f32
 /client_android/assets/sage/*.npy
 /client_android/assets/sage/*.pb
+# The SAME-S s128 decoder is intentionally included under the Stability AI
+# Community License.
+/client_android/assets/same/*.tflite
+!/client_android/assets/same/dec_w8a8_s128.tflite
 
 # External sources and intermediate model exports
 /third_party/

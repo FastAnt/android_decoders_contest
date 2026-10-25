@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "captured": "2026-10-25",
+  "device": {
+    "name": "Samsung Galaxy S25",
+    "model": "SM-S931B",
+    "android": "15 (API 35)",
+    "abi": "arm64-v8a",
+    "cpu_count": 8,
+    "ram_kb": 11385684,
+    "display": "1080x2340",
+    "density": 420,
+    "power": "USB powered"
+  },
+  "software": {
+    "app": "Flutter debug build 1.0.0",
+    "litert": "2.3.0 CompiledModel, CPU, XNNPACK",
+    "same_s": "SAME-S W8A8 dec_w8a8_s128.tflite, rung 128, trim 8",
+    "threads": 6,
+    "cores": 8,
+    "network_profile": "Stuttgart Typical (simulated 6 Mbit/s)"
+  },
+  "demo": {
+    "duration_s": 133.607619,
+    "orig_samples": 5892096,
+    "same_bytes": 343565,
+    "same_bitrate_kbps": 20.57
+  },
+  "startup_s": {
+    "spectrostream_f25_fp32": 0.971,
+    "sage_r128": 0.984,
+    "same_s_runs": [
+      1.055,
+      0.907,
+      0.902,
+      1.246,
+      0.977
+    ],
+    "same_s_median": 0.977,
+    "mp3": 7.422,
+    "note": "After the 2026-10-25 fix: just_audio play() is not awaited; wait for playing + ready/completed. MP3 reaches the captured state; its status label was fixed to STREAMING (MP3)."
+  },
+  "pss_mb": {
+    "spectrostream": 1069.829,
+    "sage": 1119.571,
+    "same_s_loaded": 608.273,
+    "same_s_after_last_run": 656.385,
+    "same_s_after_switching_from_spectrostream": 429.521,
+    "note": "Process PSS from dumpsys meminfo; includes Flutter, graphics, and app assets, not decoder-only."
+  },
+  "same_s_decode": {
+    "model_bytes": 81517872,
+    "rung": 128,
+    "trim": 8,
+    "windows": 13,
+    "window_count": 13,
+    "window_ms": [
+      248.386562,
+      278.204688,
+      246.661562,
+      244.407499,
+      251.797657,
+      246.597865,
+      254.089427,
+      247.360312,
+      257.852917,
+      264.687656,
+      263.190052,
+      268.495312,
+      256.449896
+    ],
+    "first_chunk_frames": 491520,
+    "middle_chunk_frames": 458752,
+    "final_chunk_frames": 354304,
+    "total_frames": 5892096,
+    "sum_window_ms": 3328.18,
+    "rtf_windows": 0.0249,
+    "wall_log_span_s": 4.027,
+    "rtf_wall_log_span": 0.0301
+  }
+}

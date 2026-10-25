@@ -7,3 +7,9 @@ THIRD_PARTY_NOTICES.md for attribution and license details.
 SAGE model weights: SAGE_FTe992 by Francesco Brigante, CC BY-NC-SA 4.0.
 The TFLite export was modified for this project; see WEIGHTS.md.
 No endorsement by the original author is implied.
+
+SAME-S model weights: SAME-S by Stability AI, Stability AI Community License.
+This Stability AI Model is licensed under the Stability AI Community License,
+Copyright © Stability AI Ltd. All Rights Reserved.
+The TFLite export was modified for this project (int8 W8A8, s128 slice);
+see WEIGHTS.md. Powered by Stability AI.

@@ -12,16 +12,19 @@
   "software": {
     "app": "Flutter debug build",
     "spectrostream": "SpectroStream f25 FP32, TFLite 2.18 + XNNPACK, 64-layer RVQ",
-    "sage": "SAGE_FTe992, LiteRT 2.3.0, int8 rung 128/256, sliced post-net"
+    "sage": "SAGE_FTe992, LiteRT 2.3.0, int8 rung 128/256, sliced post-net",
+    "same_s": "SAME-S, LiteRT 2.3.0, W8A8 rung 128, sliced s128"
   },
   "demo": {
     "duration_s": 133.608,
     "mp3_bytes": 5346916,
     "sst_bytes": 269488,
     "sage_bytes": 172488,
+    "same_bytes": 343565,
     "mp3_bitrate_kbps": 320.1,
     "sst_bitrate_kbps": 16.1,
-    "sage_bitrate_kbps": 10.3
+    "sage_bitrate_kbps": 10.3,
+    "same_bitrate_kbps": 20.57
   },
   "spectrostream": {
     "full_track_cli": {
@@ -76,16 +79,41 @@
       "model_bytes": 64383800
     }
   },
+  "same_s": {
+    "captured": "2026-10-25",
+    "source_track_duration_s": 276.05,
+    "source": "same_codec/docs/06_android_performance.md; Tensor G2, standalone SAME-S player, reference only",
+    "rung128": {
+      "threads": 4,
+      "rtf": 0.092,
+      "first_window_ms": 1035,
+      "window_mean_ms": 819,
+      "pss_mb_min": 415,
+      "pss_mb_max": 450,
+      "model_bytes": 81517872
+    },
+    "demo_container": {
+      "precision": "int8-pc+zlib",
+      "duration_s": 133.607619,
+      "bytes": 343565,
+      "bitrate_kbps": 20.57,
+      "stored_frames": 1440,
+      "valid_frames": 1439,
+      "chunks": 12
+    }
+  },
   "app": {
     "startup_s": {
       "spectrostream": 2.890,
-      "sage": 5.900
+      "sage": 5.900,
+      "same_s": null
     },
-    "startup_note": "Single run per mode on the debug app, Typical 6 Mbit/s profile, T6/C8; values from the in-app HISTORY screen.",
+    "startup_note": "Single run per mode on the debug app, Typical 6 Mbit/s profile, T6/C8; values from the in-app HISTORY screen. These Tensor G2 values predate the 2026-10-25 startup-metric fix. SAME-S values from the Samsung SM-S931B run are in same_s_sm_s931b.json.",
     "pss_kb": {
       "spectrostream": 677529,
-      "sage": 1680784
+      "sage": 1680784,
+      "same_s": null
     },
-    "pss_note": "Debug app process after asset install; the SAGE run still retains the SpectroStream asset set in the process. Use the CLI/standalone numbers for per-decoder comparisons."
+    "pss_note": "Debug app process after asset install; the SAGE run still retains the SpectroStream asset set in the process. Use the CLI/standalone numbers for per-decoder comparisons. SAME-S PSS from the Samsung SM-S931B run is in same_s_sm_s931b.json."
   }
 }

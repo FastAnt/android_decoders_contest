@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "captured": "2026-10-25",
+  "device": {
+    "name": "Samsung Galaxy S25",
+    "model": "SM-S931B",
+    "android": "15 (API 35)",
+    "abi": "arm64-v8a",
+    "cpu_count": 8,
+    "ram_kb": 11385684
+  },
+  "settings": {
+    "threads": 2,
+    "cores": 1,
+    "network": "preloaded (excluded)",
+    "decoder": "warm",
+    "repeats": 2
+  },
+  "runs": [
+    {
+      "mode": "spect",
+      "threads": 2,
+      "cores": 1,
+      "repeat": 1,
+      "blocks": [
+        {
+          "index": 0,
+          "frames": 48000,
+          "decode_ms": 1504
+        },
+        {
+          "index": 1,
+          "frames": 48000,
+          "decode_ms": 1481
+        },
+        {
+          "index": 2,
+          "frames": 48000,
+          "decode_ms": 1480
+        },
+        {
+          "index": 3,
+          "frames": 48000,
+          "decode_ms": 1489
+        }
+      ],
+      "total_4s_ms": 5954
+    },
+    {
+      "mode": "spect",
+      "threads": 2,
+      "cores": 1,
+      "repeat": 2,
+      "blocks": [
+        {
+          "index": 0,
+          "frames": 48000,
+          "decode_ms": 1569
+        },
+        {
+          "index": 1,
+          "frames": 48000,
+          "decode_ms": 1527
+        },
+        {
+          "index": 2,
+          "frames": 48000,
+          "decode_ms": 1515
+        },
+        {
+          "index": 3,
+          "frames": 48000,
+          "decode_ms": 1520
+        }
+      ],
+      "total_4s_ms": 6131
+    },
+    {
+      "mode": "sage",
+      "threads": 2,
+      "cores": 1,
+      "repeat": 1,
+      "blocks": [
+        {
+          "index": 1,
+          "frames": 131072,
+          "decode_ms": 791.975469
+        },
+        {
+          "index": 2,
+          "frames": 131072,
+          "decode_ms": 628.814635
+        }
+      ],
+      "total_4s_ms": 1420.8
+    },
+    {
+      "mode": "sage",
+      "threads": 2,
+      "cores": 1,
+      "repeat": 2,
+      "blocks": [
+        {
+          "index": 1,
+          "frames": 131072,
+          "decode_ms": 612.597136
+        },
+        {
+          "index": 2,
+          "frames": 131072,
+          "decode_ms": 624.677916
+        }
+      ],
+      "total_4s_ms": 1237.3
+    },
+    {
+      "mode": "same",
+      "threads": 2,
+      "cores": 1,
+      "repeat": 1,
+      "blocks": [
+        {
+          "index": 1,
+          "frames": 491520,
+          "decode_ms": 638.721562
+        }
+      ],
+      "total_4s_ms": 638.7
+    },
+    {
+      "mode": "same",
+      "threads": 2,
+      "cores": 1,
+      "repeat": 2,
+      "blocks": [
+        {
+          "index": 1,
+          "frames": 491520,
+          "decode_ms": 583.80474
+        }
+      ],
+      "total_4s_ms": 583.8
+    }
+  ],
+  "summary": {
+    "spect": {
+      "runs_ms": [
+        5954,
+        6131
+      ],
+      "avg_ms": 6042.5,
+      "median_ms": 6042.5,
+      "min_ms": 5954,
+      "max_ms": 6131,
+      "speed_vs_realtime": 0.66
+    },
+    "sage": {
+      "runs_ms": [
+        1420.8,
+        1237.3
+      ],
+      "avg_ms": 1329.0,
+      "median_ms": 1329.0,
+      "min_ms": 1237.3,
+      "max_ms": 1420.8,
+      "speed_vs_realtime": 3.01
+    },
+    "same": {
+      "runs_ms": [
+        638.7,
+        583.8
+      ],
+      "avg_ms": 611.2,
+      "median_ms": 611.2,
+      "min_ms": 583.8,
+      "max_ms": 638.7,
+      "speed_vs_realtime": 6.54
+    }
+  },
+  "note": "Decoder-only time to produce 4 s PCM; window granularity: SAME-S one 11.15 s window, SAGE two 2.97 s windows, SpectroStream four 1 s blocks."
+}
