@@ -210,7 +210,8 @@ terms:
 - SAGE: CC BY-NC-SA 4.0 — see [WEIGHTS.md](WEIGHTS.md);
 - SAME-S: Stability AI Community License — see
   [WEIGHTS.md](WEIGHTS.md) and
-  [LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt](LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt);
+  [LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt](LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt).
+  **Powered by Stability AI.**
 - SpectroStream weights are not redistributed here; see
   [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and the model-export guide.
 
