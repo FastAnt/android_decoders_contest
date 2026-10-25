@@ -1,0 +1,158 @@
+{
+  "trials": 30,
+  "tracks": [
+    "t027",
+    "t064",
+    "t082",
+    "t116",
+    "umbrella"
+  ],
+  "per_codec": {
+    "same": {
+      "si_sdr_db": {
+        "mean": 8.3592,
+        "median": 7.602,
+        "min": 2.5767,
+        "max": 16.5626
+      },
+      "waveform_snr_db": {
+        "mean": 8.9605,
+        "median": 8.1454,
+        "min": 4.041,
+        "max": 16.5579
+      },
+      "mrstft": {
+        "mean": 1.333,
+        "median": 1.331,
+        "min": 1.1787,
+        "max": 1.5384
+      },
+      "logmel": {
+        "mean": 0.9867,
+        "median": 0.9927,
+        "min": 0.7595,
+        "max": 1.1872
+      },
+      "icc_out": {
+        "mean": 0.8817,
+        "median": 0.8968,
+        "min": 0.6432,
+        "max": 0.9811
+      },
+      "side_mid_db_out": {
+        "mean": -13.1171,
+        "median": -12.6283,
+        "min": -20.1806,
+        "max": -6.5343
+      }
+    },
+    "sage": {
+      "si_sdr_db": {
+        "mean": 6.0329,
+        "median": 5.8527,
+        "min": 0.1969,
+        "max": 12.9413
+      },
+      "waveform_snr_db": {
+        "mean": 6.9778,
+        "median": 6.6396,
+        "min": 2.419,
+        "max": 12.9383
+      },
+      "mrstft": {
+        "mean": 1.0382,
+        "median": 1.0477,
+        "min": 0.8501,
+        "max": 1.2042
+      },
+      "logmel": {
+        "mean": 0.6716,
+        "median": 0.6756,
+        "min": 0.6151,
+        "max": 0.7451
+      },
+      "icc_out": {
+        "mean": 0.8802,
+        "median": 0.8907,
+        "min": 0.6744,
+        "max": 0.9776
+      },
+      "side_mid_db_out": {
+        "mean": -12.9135,
+        "median": -12.3573,
+        "min": -19.4454,
+        "max": -7.0432
+      }
+    },
+    "spectrum": {
+      "si_sdr_db": {
+        "mean": 5.8239,
+        "median": 5.8391,
+        "min": -0.0588,
+        "max": 12.498
+      },
+      "waveform_snr_db": {
+        "mean": 6.7916,
+        "median": 6.6094,
+        "min": 2.245,
+        "max": 12.5449
+      },
+      "mrstft": {
+        "mean": 0.9714,
+        "median": 0.9766,
+        "min": 0.8075,
+        "max": 1.1083
+      },
+      "logmel": {
+        "mean": 0.5515,
+        "median": 0.5527,
+        "min": 0.5076,
+        "max": 0.6334
+      },
+      "icc_out": {
+        "mean": 0.9141,
+        "median": 0.9322,
+        "min": 0.7497,
+        "max": 0.9867
+      },
+      "side_mid_db_out": {
+        "mean": -14.6772,
+        "median": -14.4297,
+        "min": -21.6974,
+        "max": -8.4056
+      }
+    }
+  },
+  "wins": {
+    "si_sdr_db": {
+      "same": 30.0,
+      "sage": 0,
+      "spectrum": 0
+    },
+    "waveform_snr_db": {
+      "same": 30.0,
+      "sage": 0,
+      "spectrum": 0
+    },
+    "mrstft": {
+      "same": 0,
+      "sage": 0,
+      "spectrum": 30.0
+    },
+    "logmel": {
+      "same": 0,
+      "sage": 0,
+      "spectrum": 30.0
+    },
+    "icc_out": {
+      "same": 0,
+      "sage": 0,
+      "spectrum": 30.0
+    },
+    "side_mid_db_out": {
+      "same": 10.0,
+      "sage": 20.0,
+      "spectrum": 0
+    }
+  }
+}

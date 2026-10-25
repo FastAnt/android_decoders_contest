@@ -115,6 +115,9 @@ On-device (Samsung SM-S931B, Android 15, 2026-10-25):
 - Decoder-only 4 s PCM at T2/C1 (2 threads on 1 core): SAME-S 0.611 s
   (6.5× realtime), SAGE 1.329 s (3.0×), SpectroStream 6.043 s (0.66×, slower
   than realtime); see [decode-4s-2t1c.md](decode-4s-2t1c.md).
+- Blind6 objective metrics (30 × 6 s) were analyzed: SAME-S wins SI-SDR/SNR,
+  SpectroStream wins MR-STFT/log-mel/ICC; no saved human rankings were present.
+  See [blind6-analysis.md](blind6-analysis.md).
 
 Measurement fix (applies to all modes):
 

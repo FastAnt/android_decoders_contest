@@ -1,16 +1,21 @@
 # Neural Codecs Client Runtime
 
-The project investigates client-side CPU decoding of Google SpectroStream from Magenta
-RealTime: 48 kHz stereo audio → SST tokens → RVQ → LiteRT/XNNPACK → iSTFT → PCM.
-Key metrics: data size, bitrate, startup speed, real-time factor,
-CPU/RAM consumption, and streaming playback.
+The project is a practical Android benchmark for three edge music codecs:
+SpectroStream (SST → RVQ → LiteRT/XNNPACK → iSTFT, 48 kHz),
+SAGE (LiteRT, 44.1 kHz), and SAME-S (LiteRT, 44.1 kHz).
+Key metrics: payload/bitrate, time-to-playback, decoder-only speed vs real time,
+CPU/RAM consumption, and objective/blind-listening quality.
 
-Current structure and launch commands are described in [README.md](README.md).
+The benchmark framing, results, and quick start are in [README.md](README.md);
+implementation patterns are in [docs/android-codec-guide.md](docs/android-codec-guide.md).
 
 - `encoder_service/` — Python batch encoder, model export, and diagnostics.
   Source model: `ssv2_48k_stereo`, Magenta RealTime `v1_legacy`.
 - `decoder_cpp/` — standalone C++20 runtime, CLI, C API, tests, and Android scripts.
-- `client_android/` — Flutter client with MP3/neural demo and network profiles.
+- `client_android/` — Flutter client with MP3/SpectroStream/SAGE/SAME-S modes,
+  Kotlin/LiteRT bridges, network profiles, and HISTORY.
+- `docs/` — setup, Android guide, benchmark reports, blind6 quality analysis,
+  charts, and validation.
 - `decoder_cpp/docs/` — architecture and SST container specification.
 - `media/` — local source media, tokens, and reference WAVs.
   Encoder input: `media/data/input/`, output: `media/data/encoded/`,
@@ -20,11 +25,11 @@ Current structure and launch commands are described in [README.md](README.md).
 
 SpectroStream source weights and prebuilt core models are not included in Git; links
 to sources and export are in `models/README.md`, setup, and model-export.
-Media, external dependencies, environments, and builds are excluded. Flutter demo files
-in `client_android/assets/` are a small generated track included in the repository;
-binary models are not stored alongside them. Android icons are application resources
-and remain in `res/`. Empty stub directories have been removed; create new directories
-together with their contents.
+Media, external dependencies, environments, and builds are excluded. The
+SAGE and SAME-S decoder weights are intentionally included under their respective
+licenses; SpectroStream binary models remain local and are not stored in Git.
+Android icons are application resources and remain in `res/`. Empty stub
+directories have been removed; create new directories together with their contents.
 
 Python script paths are computed relative to `__file__`; do not add
 absolute paths to the working copy. Reports from past experiments are kept

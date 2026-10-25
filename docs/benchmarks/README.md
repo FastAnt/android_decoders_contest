@@ -1,7 +1,7 @@
 # Android benchmark data
 
-This directory contains the raw values and the plotting script for
-[../performance.md](../performance.md).
+This directory contains the raw values and plotting scripts for the
+performance, 4 s decode, and blind6 quality analyses.
 
 ## Files
 
@@ -14,7 +14,12 @@ This directory contains the raw values and the plotting script for
   from the same device; see [../codec-speed-1c2t.md](../codec-speed-1c2t.md).
 - `decode_4s_2t1c_sm_s931b.json` — decoder-only time to produce 4 s PCM at
   T2/C1 (2 threads on 1 core); see [../decode-4s-2t1c.md](../decode-4s-2t1c.md).
-- `plot_benchmarks.py` — regenerates the PNG figures in `../images/`.
+- `blind6_mapping.json` — 30 blind6 trials (5 tracks × 6 segments) with
+  objective segment metrics; see [../blind6-analysis.md](../blind6-analysis.md).
+- `blind6_summary.json` — computed blind6 means, medians, ranges, and per-trial
+  objective metric wins.
+- `plot_benchmarks.py` — regenerates the startup/payload figures in `../images/`.
+- `plot_blind6.py` — regenerates the blind6 quality figures in `../images/`.
 
 ## Device and software
 

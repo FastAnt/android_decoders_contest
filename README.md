@@ -1,170 +1,211 @@
-# Neural Codecs
+# Neural Audio Codecs on Android
 
-An experiment with neural audio codecs on Android: Google SpectroStream from
-Magenta RealTime, SAGE, and Stability AI SAME-S. SpectroStream audio is encoded
-into SST tokens and decoded on the CPU; SAGE and SAME-S use their own `.sage` and
-`.same` containers and LiteRT decoders. SpectroStream works at 48 kHz stereo;
-SAGE and SAME-S at 44.1 kHz. All are lossy: the reconstructed WAV does not match
-the original bit-for-bit.
+### A practical benchmark and implementation guide for edge music codecs
 
-## Getting started
+This repository is a working Android/Flutter benchmark for three neural music
+codecs that are relevant to edge playback:
 
-1. [Prepare the environment, dependencies, and source weights](docs/setup.md).
-2. [Compress your track and reconstruct it in Python and C++](docs/roundtrip.md).
-3. If needed, [export models for C++](docs/model-export.md).
-4. For the app, follow the [Flutter/Android instructions](client_android/README.md).
-5. Review the [Android performance and resource study](docs/performance.md).
+- **SpectroStream** from Google Magenta RealTime — SST tokens → RVQ → TFLite →
+  iSTFT;
+- **SAGE** — a Swin-V2 audio autoencoder decoded with LiteRT on the CPU;
+- **SAME-S** — Stability AI's Stable Audio autoencoder decoded with LiteRT.
 
-[Validation results](docs/validation.md) distinguish completed scenarios
-from steps that have not yet been verified from a clean clone.
-There is also a brief entry point for agents: [AGENTS.md](AGENTS.md).
+It is also a reference implementation: it shows two practical Android decoder
+patterns (C ABI + `dart:ffi` and Kotlin + `MethodChannel`/LiteRT), how to package
+large models, how to keep decoding off the UI thread, how to measure
+time-to-playback correctly, and how to compare quality with objective metrics
+and a blind-listening harness.
 
-## What the project does
+**Start with the [documentation index](docs/README.md) and the
+[Android codec guide](docs/android-codec-guide.md).**
 
-- `encoder_service/batch_encode.py` reads a file or a directory of WAV, MP3,
-  FLAC, OGG, Opus, M4A, and AAC files; it uses FFmpeg to convert audio to 48 kHz stereo
-  and writes SST, metadata, and a track catalog.
-- `--verify-first` enables reference Python decoding of new tracks;
-  `--verify-depths` selects RVQ depths 16, 32, and 64.
-- The C++ CLI independently reads SST, verifies the CRC, and decodes to PCM16 WAV
-  using TFLite/XNNPACK. A C API is available for Flutter FFI and streaming decoding.
-- The Flutter app compares MP3, SpectroStream, SAGE, and SAME-S startup time
-  across network profiles, model choices, worker threads, and CPU affinity.
+## Results at a glance
 
-SST stores tokens, but not decoder weights. Reconstruction requires a compatible
-model, RVQ codebooks, and an iSTFT window. The current encoder stores full q64;
-q16/q32 in metadata are transmission estimates, not separately created files.
+### Decode 4 s of audio: 1 core, 2 threads
 
-## Performance snapshot
+Measured on a Samsung Galaxy S25, debug app, decoder warm, network already
+loaded. This is decoder-only time (no network, no player start):
+[full report](docs/decode-4s-2t1c.md).
 
-Measured on an AAOS/Tensor G2 head unit with one generated 133.6 s track. This
-is a single-device engineering study, not a universal benchmark. Full method,
-tables, and caveats are in [docs/performance.md](docs/performance.md).
+| Codec | 4 s decoded in | Speed vs real time |
+|---|---:|---:|
+| **SAME-S** r128 W8A8 | **0.611 s** | **6.5× faster** |
+| **SAGE** r128 W8A8 | **1.329 s** | **3.0× faster** |
+| **SpectroStream** f25 FP32 | **6.043 s** | **0.66× — slower than real time** |
 
-| Mode | Payload | Bitrate | RTF / time to playback |
-|---|---:|---:|---:|
-| MP3 | 5.35 MB | 320 kbit/s | 7.42 s to playback (S25, simulated 6 Mbit/s) |
-| SpectroStream f25 | 269.5 KB | 16.1 kbit/s | RTF 1.51 (T6/C8, full track) |
-| SAGE r128 | 172.5 KB | 10.3 kbit/s | RTF 0.46 (4 threads); app startup 5.90 s |
-| SAME-S r128 | 343.6 KB | 20.6 kbit/s | RTF 0.09 (4 threads, reference); app startup 0.90–1.25 s (S25) |
+![Decode 4 s on 1 core / 2 threads](docs/images/codec-4s-speed-2t1c.png)
 
-![Payload comparison](docs/images/benchmark-payload.png)
+The numbers are not proportional because the codecs use different window sizes:
+SAME-S pays one 11.15 s window, SAGE needs two 2.97 s windows for 4 s, and
+SpectroStream needs four 1 s blocks. On one core with two threads,
+SpectroStream cannot sustain 4 s of playback; with more threads it can.
 
-*The payload figure predates the SAME-S addition; the table above includes its
-343.6 KB / 20.6 kbit/s payload.*
+### Quality: no single winner
 
-SpectroStream thread scaling saturates around four workers on this device;
-`CORES` constrains affinity but does not add throughput beyond the useful thread
-count. SAGE rung 128 is the better mobile trade-off than rung 256 in both
-startup latency and memory. SAME-S has the lowest decode RTF of the three but a
-larger payload and model than SAGE; its in-app startup needs a device run.
+The `blind6` fixtures contain 30 six-second trials from five tracks. Objective
+metrics split cleanly:
 
-On a Samsung SM-S931B (Android 15, debug build, T6/C8, Typical 6 Mbit/s) the
-corrected app-level startup was 0.971 s for SpectroStream f25, 0.984 s for
-SAGE r128, 0.902–1.246 s for SAME-S r128, and 7.422 s for MP3 (full 5.35 MB
-download under the simulated 6 Mbit/s profile). The app-level Tensor G2 values in
-the table predate the 2026-10-25 startup-metric fix (they included the first
-chunk's playback); see [the SAME-S device report](docs/same-s-device-report.md) and the
-[1-core / 2-thread codec matrix](docs/codec-speed-1c2t.md).
+- **SAME-S** wins SI-SDR and waveform SNR in all 30 trials.
+- **SpectroStream** wins MR-STFT, log-mel, and ICC in all 30 trials.
+- **SAGE** is generally between or below them on these metrics.
 
-![SpectroStream scaling](docs/images/benchmark-spectrostream-scaling.png)
-![SAGE trade-off](docs/images/benchmark-sage.png)
+![Blind6 objective overview](docs/images/blind6-overview.png)
 
-## App screenshots
+That trade-off — waveform fidelity vs spectral/perceptual similarity — is the
+main quality finding. The `blind6` artifact contains the trial mapping and the
+objective metrics but **no saved human rankings**, so the charts are not listener
+votes; see [blind6 analysis](docs/blind6-analysis.md) for the data and caveats.
 
-![Android client main screen](docs/images/app-main.png)
+### Codec profiles
 
-*Main screen: live time-to-playback, network profile, mode, model, threads and
-cores, plus the square payload visualization.*
+| | SpectroStream f25 | SAGE r128 | SAME-S r128 |
+|---|---|---|---|
+| Container | `.sst` | `.sage` | `.same` |
+| Sample rate | 48 kHz | 44.1 kHz | 44.1 kHz |
+| Payload, demo track | 269.5 KB | 172.5 KB | 343.6 KB |
+| Bitrate | 16.1 kbit/s | 10.3 kbit/s | 20.6 kbit/s |
+| Decoder | C++/FFI, TFLite/XNNPACK, iSTFT | Kotlin, LiteRT, SageDsp | Kotlin, LiteRT |
+| Window / block | 1 s | 2.97 s core | 11.15 s |
+| Model size in app | f25 core ~143 MB + codebooks | 59.2 MB | 81.5 MB |
+| App-level PSS (S25) | 1 070 MB | 1 120 MB | 608–656 MB |
+| Weight license | CC-BY-4.0 (not redistributed) | CC BY-NC-SA 4.0 | Stability AI Community License |
 
-| Settings | SAGE streaming | HISTORY |
-|---|---|---|
-| ![Settings](docs/images/app-settings.png) | ![SAGE streaming](docs/images/app-sage-streaming.png) | ![HISTORY](docs/images/app-history.png) |
+The payload/bitrate values are measured from the checked-in 133.6 s demo. PSS
+includes the Flutter process and graphics, not only the decoder.
 
-The screenshots come from the debug app on the AAOS/Tensor G2 device. The
-HISTORY view is filled by real runs; it is not a mock.
-
-SAME-S on-device screenshots: [main screen](docs/images/app-same-s-main.png)
-and [HISTORY](docs/images/app-same-s-history.png).
-
-## Structure
-
-- `encoder_service/` — Python encoder and exporters; [CLI options](encoder_service/README.md).
-- `decoder_cpp/` — runtime, CLI, C API, tests, and Android scripts;
-  [build and CLI](decoder_cpp/README.md), [architecture](decoder_cpp/docs/architecture.md),
-  [SST1 format](decoder_cpp/docs/sst_format.md).
-- `client_android/` — Flutter client.
-- `docs/` — setup, full cycle, export, validation results, benchmarks, and checksums.
-- `media/` — source audio, SST, WAV, images, video, and presentation.
-- `models/` — cache of the source Magenta SavedModels.
-- `decoder_cpp/models/` — exported runtime assets.
-- `third_party/`, `decoder_cpp/third_party/` — local external dependencies.
-
-## Which files are in Git
-
-The repository keeps source code, configuration, documentation, tests,
-app icons, a small generated demo track, and the SAGE and SAME-S decoder
-weights: `client_android/assets/audio/demo.mp3`,
-`client_android/assets/spectrostream/demo.sst`,
-`client_android/assets/sage/demo.sage`,
-`client_android/assets/sage/dec_w8a8.tflite`,
-`client_android/assets/same/demo.same`, and
-`client_android/assets/same/dec_w8a8_s128.tflite`.
-
-The SAGE weights are distributed under **CC BY-NC-SA 4.0**, and the SAME-S
-weights under the **Stability AI Community License**; neither is Apache-2.0.
-See [WEIGHTS.md](WEIGHTS.md) for attribution, modifications, checksums, and
-scope. SpectroStream weights and exported models **are not stored in Git**: the
-source SavedModels are downloaded from Hugging Face, while the TFLite core
-models, codebooks, and the iSTFT window are exported according to the
-[instructions](docs/model-export.md) or downloaded separately. Links and
-checksums are in [models/README.md](models/README.md),
-[docs/source-model.sha256](docs/source-model.sha256), and
-[docs/runtime-assets.sha256](docs/runtime-assets.sha256).
-
-Media, external checkouts, environments, builds, and prebuilt native libraries
-are excluded via `.gitignore`. To encode in a clean clone, install the
-dependencies; for Android, also build the native runtime and prepare the
-models as described in [setup](docs/setup.md).
+## How it works
 
 ```text
-media/                      # local experiments, not in Git
-├── images/                 # images
-├── videos/                 # video and screen recordings
-├── presentation/           # slides
-├── data/
-│   ├── input/              # default encoder input
-│   ├── encoded/            # SST, metadata.json, catalog.json
-│   └── reconstructed/      # Python reference WAVs
-└── reconstructed/
-    ├── cpp/                # Linux reference WAVs
-    └── android/            # Android reference WAVs
+Flutter UI
+  ├─ network simulation + asset installer
+  ├─ startup timer and HISTORY (up to 40 runs)
+  └─ just_audio PCM16 WAV chunk queue
+        │
+        ├─ SpectroStream: dart:ffi isolate → C++ → TFLite/XNNPACK → iSTFT
+        ├─ SAGE:          MethodChannel → Kotlin → LiteRT → SageDsp
+        └─ SAME-S:        MethodChannel → Kotlin → LiteRT → PCM
 ```
 
-The demo track for the app lives directly under `client_android/assets/`; it is
-a generated track, not an external symbolic link. Create directories for new
-experiments inside `media/`.
-Android icons remain in `android/app/src/main/res/`.
+The app keeps **one large decoder alive at a time**. Changing mode stops the
+current session, releases the inactive decoder, and warms the selected one.
 
-## Experiment reports
+Two integration styles are intentionally included:
 
-`decoder_cpp/report.md`, `decoder_cpp/ANDROID_REPORT.md`,
-`decoder_cpp/android_build_report.md`,
-`decoder_cpp/android/results/ANDROID_DEVICE_REPORT.md`, and
-`client_android/client_report.md` describe separate past experiments.
-Their limitations and figures may refer to earlier versions;
-for current commands, use the guides above and [validation](docs/validation.md).
+| Style | Codec | Use it when |
+|---|---|---|
+| C ABI + `dart:ffi` | SpectroStream | you already have a C++ decoder/DSP and want native control |
+| Kotlin + MethodChannel | SAGE, SAME-S | you use the LiteRT/Java API and want a simple Android library |
 
-## License
+## Quick start
 
-Original code and documentation in this repository are licensed under the
-[Apache License 2.0](LICENSE). The SAGE rung-128 model weights are a separate
-work distributed under [CC BY-NC-SA 4.0](LICENSES/CC-BY-NC-SA-4.0.txt), not
-Apache-2.0; attribution and modification details are in [WEIGHTS.md](WEIGHTS.md).
-The included SAME-S weights are distributed under the
-[Stability AI Community License](LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt),
-also not Apache-2.0; see [WEIGHTS.md](WEIGHTS.md) and
-[assets/same/README.md](client_android/assets/same/README.md).
-The demo track is a generated asset included for demonstration. SpectroStream
-weights are not redistributed here; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
-for upstream attribution and model terms.
+```bash
+# Python encoder / model export environment
+cd encoder_service
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.lock.txt
+
+# C++ decoder (optional; needed for SpectroStream)
+cd ../decoder_cpp
+mkdir -p build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j"$(nproc)"
+
+# Flutter client
+cd ../../client_android
+flutter pub get
+flutter analyze
+flutter test
+flutter build apk --debug
+adb install -r -t build/app/outputs/flutter-apk/app-debug.apk
+```
+
+Preparing the SpectroStream TFLite/codebooks/window and the SAME-S model is
+described in [setup](docs/setup.md), [model export](docs/model-export.md), and
+[client prerequisites](client_android/README.md). The SAME-S demo `.same` and
+decoder are included; the 81.5 MB model is in Git for this benchmark.
+
+## Implementation guide
+
+The [Android codec guide](docs/android-codec-guide.md) covers the reusable
+patterns in detail:
+
+- choosing FFI vs MethodChannel/LiteRT;
+- copying models to app storage and keeping a weight cache;
+- one executor/isolate per decoder, never the UI thread;
+- CPU affinity and the `THREADS`/`CORES` distinction;
+- the PCM → WAV → `just_audio` pipeline;
+- why you must not await `just_audio.play()` for a startup metric;
+- how window granularity changes “4 s” decode time;
+- a step-by-step checklist for adding a fourth codec;
+- benchmark protocol and quality evaluation.
+
+Codec-specific material:
+
+- [SpectroStream architecture](decoder_cpp/docs/architecture.md),
+  [SST format](decoder_cpp/docs/sst_format.md)
+- [SAME-S device report](docs/same-s-device-report.md),
+  [SAME-S integration plan](docs/same-s-integration-plan.ru.md)
+- SAGE decoder/bridge sources:
+  `client_android/android/app/src/main/kotlin/com/sagecodec/`
+
+## Benchmark protocol
+
+The app measures:
+
+- **time-to-playback** from Play to the player's `ready`/playing state;
+- **network payload** under simulated network profiles;
+- **decoder-only time** by summing logged window/block times;
+- **process PSS** via `dumpsys meminfo`;
+- **quality** with SI-SDR, waveform SNR, MR-STFT, log-mel, ICC, and blind
+  listening.
+
+Always state the configuration with a number: device, build type, network
+profile, `THREADS`, `CORES`, warm/cold model, and whether the number includes
+network or player startup.
+
+Reports:
+
+- [Performance study (Tensor G2)](docs/performance.md)
+- [Codec speed matrix (S25)](docs/codec-speed-1c2t.md)
+- [4 s decode at 1 core / 2 threads](docs/decode-4s-2t1c.md)
+- [4 s decode at default 6 threads](docs/decode-4s.md)
+- [Validation: what is and is not verified](docs/validation.md)
+- [Raw benchmark data](docs/benchmarks/README.md)
+
+## Repository map
+
+- `encoder_service/` — Python batch encoder and model exporters.
+- `decoder_cpp/` — SpectroStream C++ runtime, CLI, C API, tests, Android build.
+- `client_android/` — Flutter app, Kotlin bridges, assets, on-device UI.
+- `docs/` — setup, implementation guide, benchmark reports, charts, licenses.
+- `media/` — local source media and reference WAVs (not in Git).
+- `models/` — cache of source Magenta RealTime SavedModels.
+- `decoder_cpp/models/` — exported SpectroStream runtime assets.
+
+## Quality and listening
+
+The `blind6` data is a set of 30 six-second trials with objective segment
+metrics. It is useful for comparing waveform and spectral fidelity, but it is
+**not** a substitute for human preference: no listener rankings were saved in
+the artifact. If you run the blind page and export its rankings, the charts can
+be extended with first-place counts and mean ranks.
+
+See [blind6 analysis](docs/blind6-analysis.md) and the
+[raw summary](docs/benchmarks/blind6_summary.json).
+
+## Licensing
+
+Original code and documentation are Apache-2.0. Model weights have separate
+terms:
+
+- SAGE: CC BY-NC-SA 4.0 — see [WEIGHTS.md](WEIGHTS.md);
+- SAME-S: Stability AI Community License — see
+  [WEIGHTS.md](WEIGHTS.md) and
+  [LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt](LICENSES/STABILITY-AI-COMMUNITY-LICENSE.txt);
+- SpectroStream weights are not redistributed here; see
+  [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and the model-export guide.
+
+The demo track and generated container/audio files are included for
+demonstration only. Replace them with content you have the rights to publish if
+you fork this repository.

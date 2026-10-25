@@ -1,6 +1,8 @@
 # Working with Neural Codecs
 
-Start with [README.md](README.md). Practical order:
+Start with [README.md](README.md) and the [documentation index](docs/README.md).
+For Android integration patterns, read [docs/android-codec-guide.md](docs/android-codec-guide.md).
+Practical order:
 
 1. [docs/setup.md](docs/setup.md) — Python, source weights, and C++ dependencies.
 2. [docs/roundtrip.md](docs/roundtrip.md) — your track → SST → WAV.

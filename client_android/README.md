@@ -1,7 +1,8 @@
 # Neural Codecs Android Client
 
 A Flutter application for comparing the startup time of MP3, SpectroStream,
-SAGE, and SAME-S. SpectroStream is decoded through `dart:ffi` and the C++
+SAGE, and SAME-S. For the reusable Android patterns, see
+[../docs/android-codec-guide.md](../docs/android-codec-guide.md). SpectroStream is decoded through `dart:ffi` and the C++
 runtime; SAGE and SAME-S go through Kotlin bridges to LiteRT. The app exposes
 network profiles, a SpectroStream model selector, and CPU thread counts.
 
