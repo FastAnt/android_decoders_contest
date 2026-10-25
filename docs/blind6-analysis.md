@@ -1,33 +1,63 @@
-# Blind6: objective quality of the three codecs
+# Blind6: listening result and objective quality
 
-`blind6` is the six-second, 30-trial listening fixture from the SAME-S project.
-It contains five tracks × six segments and six shuffled A/B/C label orders. The
-repository copy of the data is
-[benchmarks/blind6_mapping.json](benchmarks/blind6_mapping.json).
+`blind6` is the six-second, 30-trial listening fixture for the three codecs. It
+contains five tracks × six segments and six shuffled A/B/C label orders. The
+repository copy of the trial mapping is
+[benchmarks/blind6_mapping.json](benchmarks/blind6_mapping.json); the saved
+single-listener ranking is
+[benchmarks/blind6_listening_results.json](benchmarks/blind6_listening_results.json).
 
-**Important:** the `blind6` directory contains the trial mapping and the
-per-segment objective metrics, but **no saved listener votes/rankings**. The
-HTML player stores rankings in browser `localStorage` under
-`samecodec.blindtest.saves.v2`; that export was not present in the artifact
-directory. The charts below therefore show **objective quality**, not human
-preference. If you export the saved rankings, the same data can be extended with
-preference plots.
+## Listening result
 
-## Objective metrics
+One saved listener session completed all 30 trials. The ranking gives 3 points
+for first place, 2 for second, and 1 for third; ties are allowed and an unmarked
+variant is third.
 
-Mean values over 30 trials:
+| Place | Codec | 1st | 2nd | 3rd | Points | Avg rank |
+|---:|---|---:|---:|---:|---:|---:|
+| **1** | **SpectroStream** f25 FP32 | 20 | 10 | 0 | **80** | 1.333 |
+| **2** | **SAGE** r128 W8A8 | 20 | 7 | 3 | **77** | 1.433 |
+| **3** | **SAME-S** r128 W8A8 | 2 | 3 | 25 | **37** | 2.767 |
+
+First places are tied at 20/20; **SpectroStream wins on second places (10 vs 7)**
+and therefore on total points, 80 to 77. SAME-S is third with 37 points.
+
+![Blind6 listening result](images/blind6-listening-results.png)
+
+This is a **single-listener** result from one session, not a controlled
+multi-listener study. It is useful as a directional signal and as a reproducible
+example of the scoring protocol, not as a population estimate. The raw session
+metadata (browser, timezone, page URL) was removed from the checked-in JSON.
+
+### Points by track
+
+Six trials per track; maximum 18 points per codec per track:
+
+| Track | SpectroStream | SAGE | SAME-S |
+|---|---:|---:|---:|
+| Umbrella (pop) | **18** | 11 | 11 |
+| Folk #27 | **18** | 17 | 6 |
+| Metal #64 | 15 | **16** | 8 |
+| Pop #82 | **15** | **15** | 6 |
+| Hip-Hop #116 | 14 | **18** | 6 |
+
+![Blind6 points by track](images/blind6-points-by-track.png)
+
+SpectroStream leads Umbrella and Folk; SAGE leads Metal and Hip-Hop; Pop #82 is
+tied. The overall ranking is close (80 vs 77), and the per-track result is
+mixed — a useful reminder that the aggregate score hides content dependence.
+
+## Objective quality
+
+Mean values over the same 30 trials:
 
 | Codec | SI-SDR ↑ | Waveform SNR ↑ | MR-STFT ↓ | Log-mel ↓ | ICC ↑ |
 |---|---:|---:|---:|---:|---:|
-| **SAME-S** r128 W8A8 | **8.36 dB** | **8.96 dB** | 1.333 | 0.987 | 0.882 |
-| **SAGE** r128 W8A8 | 6.03 dB | 6.98 dB | 1.038 | 0.672 | 0.880 |
-| **SpectroStream** f25 FP32 | 5.82 dB | 6.79 dB | **0.971** | **0.552** | **0.914** |
+| **SAME-S** | **8.36 dB** | **8.96 dB** | 1.333 | 0.987 | 0.882 |
+| **SAGE** | 6.03 dB | 6.98 dB | 1.038 | 0.672 | 0.880 |
+| **SpectroStream** | 5.82 dB | 6.79 dB | **0.971** | **0.552** | **0.914** |
 
-Medians show the same order: SAME-S 7.60 dB SI-SDR, SAGE 5.85 dB,
-SpectroStream 5.84 dB. For MR-STFT/log-mel lower is better; for SI-SDR,
-waveform SNR and ICC higher is better.
-
-Per-trial wins (best value in each 6 s trial; 30 trials):
+Per-trial wins (best value in each trial):
 
 | Metric | SAME-S | SAGE | SpectroStream |
 |---|---:|---:|---:|
@@ -37,50 +67,43 @@ Per-trial wins (best value in each 6 s trial; 30 trials):
 | Log-mel | 0 | 0 | **30** |
 | ICC | 0 | 0 | **30** |
 
-This is the central quality trade-off: **SAME-S wins waveform fidelity,
-SpectroStream wins spectral/perceptual similarity, and SAGE is generally
-between or below them on these metrics.** The metrics disagree, which is exactly
-why a blind listening test is needed for a product decision.
-
-## Charts
-
 ![Blind6 objective overview](images/blind6-overview.png)
 
-- Top-left: per-trial SI-SDR; SAME-S is consistently highest.
-- Top-right: per-trial log-mel distance; SpectroStream is consistently lowest.
-- Bottom-left: metric wins; the 30/30 split between waveform and spectral
-  metrics.
-- Bottom-right: trade-off scatter; stars are means.
+The objective metrics split cleanly: SAME-S wins waveform fidelity in every
+trial, SpectroStream wins the spectral/perceptual metrics in every trial, and
+SAGE is generally between or below them. This is the central quality trade-off.
 
-![Blind6 metric wins](images/blind6-metric-wins.png)
+## What the combination shows
 
-![Blind6 distributions](images/blind6-distributions.png)
+- **Listening:** SpectroStream 80, SAGE 77, SAME-S 37 (one listener).
+- **Objective waveform:** SAME-S is best by a wide margin.
+- **Objective spectral/perceptual:** SpectroStream is best by a wide margin.
 
-The charts are generated from the checked-in JSON by
-[benchmarks/plot_blind6.py](benchmarks/plot_blind6.py):
+The listener result does **not** follow SI-SDR: SAME-S has the highest waveform
+SNR but is last in the ranking. It follows the spectral/perceptual side more
+closely. That is exactly why a benchmark should report both families of metrics
+and a listening result, not a single “winner” metric.
+
+## Reproduce
 
 ```bash
 uv run --with matplotlib python docs/benchmarks/plot_blind6.py
 ```
 
-## What the blind test was designed to measure
+The script regenerates:
 
-- 30 trials, each 6 s long, from five tracks (pop, hip-hop, metal, folk, pop).
-- Each trial has three encoded variants plus the reference; labels A/B/C are
-  shuffled, and all six label permutations occur five times.
-- The intended UI is a ranking (`1st`, `2nd`, or unmarked = `3rd`), but the
-  saved rankings are not part of the artifact.
+- `docs/images/blind6-listening-results.png`
+- `docs/images/blind6-points-by-track.png`
+- `docs/images/blind6-overview.png`
+- `docs/images/blind6-metric-wins.png`
+- `docs/images/blind6-distributions.png`
 
-## How to add human preference charts
+Raw computed objective summary:
+[benchmarks/blind6_summary.json](benchmarks/blind6_summary.json).
 
-Export the rankings from the blind page (Save button / localStorage) and add a
-`rankings` array keyed by trial and label. The plotting script can then show:
+## Adding more listeners
 
-- first-place counts per codec;
-- mean rank / Borda score per codec;
-- preference by track and by metric (SI-SDR, log-mel, etc.).
-
-Without those votes, any "winner" claim would be objective-only. The current
-evidence supports a **trade-off**, not a single winner.
-
-Raw summary: [benchmarks/blind6_summary.json](benchmarks/blind6_summary.json).
+The blind page can export more sessions. A multi-listener analysis should
+aggregate first/second/third counts and points across sessions, report the number
+of listeners and confidence intervals, and keep the per-track breakdown. The
+current checked-in data is one session; do not present it as a population study.

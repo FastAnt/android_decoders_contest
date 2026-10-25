@@ -15,11 +15,15 @@ performance, 4 s decode, and blind6 quality analyses.
 - `decode_4s_2t1c_sm_s931b.json` — decoder-only time to produce 4 s PCM at
   T2/C1 (2 threads on 1 core); see [../decode-4s-2t1c.md](../decode-4s-2t1c.md).
 - `blind6_mapping.json` — 30 blind6 trials (5 tracks × 6 segments) with
-  objective segment metrics; see [../blind6-analysis.md](../blind6-analysis.md).
+  objective segment metrics and A/B/C labels.
+- `blind6_listening_results.json` — one saved listener session: points, rank
+  distribution, per-track points, and ranks per trial; see
+  [../blind6-analysis.md](../blind6-analysis.md).
 - `blind6_summary.json` — computed blind6 means, medians, ranges, and per-trial
   objective metric wins.
 - `plot_benchmarks.py` — regenerates the startup/payload figures in `../images/`.
-- `plot_blind6.py` — regenerates the blind6 quality figures in `../images/`.
+- `plot_blind6.py` — regenerates the blind6 listening and objective figures in
+  `../images/`.
 
 ## Device and software
 

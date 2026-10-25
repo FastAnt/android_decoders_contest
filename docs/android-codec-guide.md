@@ -160,7 +160,6 @@ So "4 s decode" is **not** `RTF × 4` for SAGE/SAME-S. This is why the
 The SAME-S integration is a complete worked example:
 
 - [SAME-S device report](same-s-device-report.md)
-- [SAME-S integration plan (Russian, historical)](same-s-integration-plan.ru.md)
 - [SameBridge](../client_android/android/app/src/main/kotlin/com/neuralcodecs/client_android/SameBridge.kt)
 - [SameDecoder](../client_android/android/app/src/main/kotlin/com/samecodec/decoder/SameDecoder.kt)
 
@@ -188,21 +187,31 @@ which one is on the slide.
 | [codec-speed-1c2t.md](codec-speed-1c2t.md) | 3 codecs × {T1/C1, T2/C2} startup, Samsung S25 |
 | [decode-4s-2t1c.md](decode-4s-2t1c.md) | 4 s PCM at 2 threads / 1 core |
 | [same-s-device-report.md](same-s-device-report.md) | SAME-S integration, PSS, window logs |
-| [blind6-analysis.md](blind6-analysis.md) | objective quality trade-off from blind6 |
+| [blind6-analysis.md](blind6-analysis.md) | single-listener ranking + objective trade-off |
 | [validation.md](validation.md) | what was and was not verified |
 
-## 9. Quality: no free winner
+## 9. Quality: listening and metrics disagree
 
-The blind6 objective data shows a split:
+One saved listener session ranked 30 six-second blind trials:
+
+| Place | Codec | Points |
+|---:|---|---:|
+| 1 | SpectroStream | **80** |
+| 2 | SAGE | **77** |
+| 3 | SAME-S | **37** |
+
+First places are tied 20/20; SpectroStream wins on second places. This is a
+single-listener result, not a population study. The per-track result is mixed.
+
+Objective metrics split the other way:
 
 - **SAME-S** wins SI-SDR and waveform SNR in all 30 trials.
 - **SpectroStream** wins MR-STFT, log-mel, and ICC in all 30 trials.
 - **SAGE** is generally between or below them on these metrics.
 
-The codecs optimize different things. A product decision needs a listening test
-on the target content; the `blind6` artifact has the fixtures but no exported
-human votes. See [blind6-analysis.md](blind6-analysis.md) for the charts and the
-missing-data caveat.
+The listener ranking follows the spectral/perceptual side more closely than
+SI-SDR. Do not use one metric family as a universal verdict. See
+[blind6-analysis.md](blind6-analysis.md) for the charts and caveats.
 
 ## 10. Licensing
 

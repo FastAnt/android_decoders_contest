@@ -1,0 +1,434 @@
+{
+  "schema": "samecodec.blind-listening-summary/v1",
+  "saved_at": "2026-10-25T14:30:27.894Z",
+  "protocol": {
+    "trials": 30,
+    "duration_s": 6,
+    "tracks": 5,
+    "scoring": {
+      "first": 3,
+      "second": 2,
+      "third": 1
+    },
+    "default_third": true,
+    "note": "Single-listener session. Ties are allowed; an unmarked variant is third."
+  },
+  "scores": {
+    "spectrum": {
+      "first": 20,
+      "second": 10,
+      "third": 0,
+      "points": 80,
+      "avg_rank": 1.3333
+    },
+    "sage": {
+      "first": 20,
+      "second": 7,
+      "third": 3,
+      "points": 77,
+      "avg_rank": 1.4333
+    },
+    "same": {
+      "first": 2,
+      "second": 3,
+      "third": 25,
+      "points": 37,
+      "avg_rank": 2.7667
+    }
+  },
+  "score_order": [
+    "spectrum",
+    "sage",
+    "same"
+  ],
+  "outcome": {
+    "winner": "spectrum",
+    "points": 80,
+    "first_places": 20,
+    "tie": false,
+    "order": [
+      "spectrum",
+      "sage",
+      "same"
+    ],
+    "criterion": "points desc; then first places; then second places; then average rank asc"
+  },
+  "points_by_track": {
+    "t027": {
+      "spectrum": 18,
+      "sage": 17,
+      "same": 6
+    },
+    "t064": {
+      "spectrum": 15,
+      "sage": 16,
+      "same": 8
+    },
+    "t082": {
+      "spectrum": 15,
+      "sage": 15,
+      "same": 6
+    },
+    "t116": {
+      "spectrum": 14,
+      "sage": 18,
+      "same": 6
+    },
+    "umbrella": {
+      "spectrum": 18,
+      "sage": 11,
+      "same": 11
+    }
+  },
+  "evaluations": {
+    "1": {
+      "A": 1,
+      "B": 1,
+      "C": 3
+    },
+    "2": {
+      "A": 1,
+      "B": 3,
+      "C": 2
+    },
+    "3": {
+      "A": 3,
+      "B": 2,
+      "C": 1
+    },
+    "4": {
+      "A": 1,
+      "B": 3,
+      "C": 1
+    },
+    "5": {
+      "A": 3,
+      "B": 2,
+      "C": 1
+    },
+    "6": {
+      "A": 1,
+      "B": 3,
+      "C": 1
+    },
+    "7": {
+      "A": 1,
+      "B": 3,
+      "C": 2
+    },
+    "8": {
+      "A": 1,
+      "B": 2,
+      "C": 3
+    },
+    "9": {
+      "A": 3,
+      "B": 1,
+      "C": 1
+    },
+    "10": {
+      "A": 1,
+      "B": 3,
+      "C": 2
+    },
+    "11": {
+      "A": 1,
+      "B": 3,
+      "C": 2
+    },
+    "12": {
+      "A": 2,
+      "B": 1,
+      "C": 3
+    },
+    "13": {
+      "A": 3,
+      "B": 1,
+      "C": 1
+    },
+    "14": {
+      "A": 2,
+      "B": 3,
+      "C": 1
+    },
+    "15": {
+      "A": 1,
+      "B": 1,
+      "C": 3
+    },
+    "16": {
+      "A": 1,
+      "B": 2,
+      "C": 3
+    },
+    "17": {
+      "A": 3,
+      "B": 1,
+      "C": 1
+    },
+    "18": {
+      "A": 3,
+      "B": 2,
+      "C": 1
+    },
+    "19": {
+      "A": 1,
+      "B": 3,
+      "C": 1
+    },
+    "20": {
+      "A": 1,
+      "B": 1,
+      "C": 3
+    },
+    "21": {
+      "A": 1,
+      "B": 2,
+      "C": 2
+    },
+    "22": {
+      "A": 1,
+      "B": 2,
+      "C": 3
+    },
+    "23": {
+      "A": 3,
+      "B": 1,
+      "C": 1
+    },
+    "24": {
+      "A": 3,
+      "B": 2,
+      "C": 1
+    },
+    "25": {
+      "A": 1,
+      "B": 3,
+      "C": 2
+    },
+    "26": {
+      "A": 3,
+      "B": 1,
+      "C": 1
+    },
+    "27": {
+      "A": 3,
+      "B": 1,
+      "C": 1
+    },
+    "28": {
+      "A": 2,
+      "B": 2,
+      "C": 1
+    },
+    "29": {
+      "A": 1,
+      "B": 2,
+      "C": 2
+    },
+    "30": {
+      "A": 1,
+      "B": 3,
+      "C": 3
+    }
+  },
+  "mapping": {
+    "1": {
+      "A": "same",
+      "B": "spectrum",
+      "C": "sage"
+    },
+    "2": {
+      "A": "sage",
+      "B": "same",
+      "C": "spectrum"
+    },
+    "3": {
+      "A": "same",
+      "B": "spectrum",
+      "C": "sage"
+    },
+    "4": {
+      "A": "sage",
+      "B": "same",
+      "C": "spectrum"
+    },
+    "5": {
+      "A": "same",
+      "B": "spectrum",
+      "C": "sage"
+    },
+    "6": {
+      "A": "sage",
+      "B": "same",
+      "C": "spectrum"
+    },
+    "7": {
+      "A": "spectrum",
+      "B": "same",
+      "C": "sage"
+    },
+    "8": {
+      "A": "spectrum",
+      "B": "sage",
+      "C": "same"
+    },
+    "9": {
+      "A": "sage",
+      "B": "spectrum",
+      "C": "same"
+    },
+    "10": {
+      "A": "spectrum",
+      "B": "same",
+      "C": "sage"
+    },
+    "11": {
+      "A": "spectrum",
+      "B": "same",
+      "C": "sage"
+    },
+    "12": {
+      "A": "sage",
+      "B": "spectrum",
+      "C": "same"
+    },
+    "13": {
+      "A": "same",
+      "B": "sage",
+      "C": "spectrum"
+    },
+    "14": {
+      "A": "sage",
+      "B": "same",
+      "C": "spectrum"
+    },
+    "15": {
+      "A": "spectrum",
+      "B": "sage",
+      "C": "same"
+    },
+    "16": {
+      "A": "sage",
+      "B": "spectrum",
+      "C": "same"
+    },
+    "17": {
+      "A": "same",
+      "B": "sage",
+      "C": "spectrum"
+    },
+    "18": {
+      "A": "same",
+      "B": "spectrum",
+      "C": "sage"
+    },
+    "19": {
+      "A": "spectrum",
+      "B": "same",
+      "C": "sage"
+    },
+    "20": {
+      "A": "spectrum",
+      "B": "sage",
+      "C": "same"
+    },
+    "21": {
+      "A": "sage",
+      "B": "spectrum",
+      "C": "same"
+    },
+    "22": {
+      "A": "sage",
+      "B": "spectrum",
+      "C": "same"
+    },
+    "23": {
+      "A": "same",
+      "B": "sage",
+      "C": "spectrum"
+    },
+    "24": {
+      "A": "same",
+      "B": "spectrum",
+      "C": "sage"
+    },
+    "25": {
+      "A": "sage",
+      "B": "same",
+      "C": "spectrum"
+    },
+    "26": {
+      "A": "same",
+      "B": "sage",
+      "C": "spectrum"
+    },
+    "27": {
+      "A": "same",
+      "B": "sage",
+      "C": "spectrum"
+    },
+    "28": {
+      "A": "spectrum",
+      "B": "same",
+      "C": "sage"
+    },
+    "29": {
+      "A": "spectrum",
+      "B": "sage",
+      "C": "same"
+    },
+    "30": {
+      "A": "spectrum",
+      "B": "sage",
+      "C": "same"
+    }
+  },
+  "tracks": {
+    "1": "umbrella",
+    "2": "t116",
+    "3": "t064",
+    "4": "t116",
+    "5": "t082",
+    "6": "t027",
+    "7": "umbrella",
+    "8": "t027",
+    "9": "umbrella",
+    "10": "t064",
+    "11": "umbrella",
+    "12": "t064",
+    "13": "t027",
+    "14": "t082",
+    "15": "umbrella",
+    "16": "t116",
+    "17": "t027",
+    "18": "t116",
+    "19": "t064",
+    "20": "t116",
+    "21": "t064",
+    "22": "t082",
+    "23": "t027",
+    "24": "t082",
+    "25": "t116",
+    "26": "t082",
+    "27": "t027",
+    "28": "t064",
+    "29": "umbrella",
+    "30": "t082"
+  },
+  "objective_means": {
+    "same": {
+      "si_sdr_db": 8.3592,
+      "logmel": 0.9867
+    },
+    "sage": {
+      "si_sdr_db": 6.0329,
+      "logmel": 0.6716
+    },
+    "spectrum": {
+      "si_sdr_db": 5.8239,
+      "logmel": 0.5515
+    }
+  },
+  "source_note": "Derived from one saved blind6 ranking session; session/browser metadata and localized display strings were removed."
+}

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Charts for the blind6 music-codec listening-test fixtures.
+"""Charts for the blind6 music-codec listening-test data.
 
-The blind6 directory contains the trial mapping and objective segment metrics.
-It does not contain saved listener rankings, so these charts describe objective
-quality, not human preference. See docs/blind6-analysis.md.
+The checked-in data contains the trial mapping, objective segment metrics, and
+one saved single-listener ranking session. The objective charts and the
+listening-result charts are generated separately. See docs/blind6-analysis.md.
 """
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_PATH = ROOT / "docs" / "benchmarks" / "blind6_mapping.json"
 OUT_DIR = ROOT / "docs" / "images"
 SUMMARY_PATH = ROOT / "docs" / "benchmarks" / "blind6_summary.json"
+LISTENING_PATH = ROOT / "docs" / "benchmarks" / "blind6_listening_results.json"
 
 CODECS = ["same", "sage", "spectrum"]
 LABELS = {"same": "SAME-S", "sage": "SAGE", "spectrum": "SpectroStream"}
@@ -34,6 +35,10 @@ METRICS = {
 
 def load() -> dict:
     return json.loads(DATA_PATH.read_text())
+
+
+def load_listening() -> dict:
+    return json.loads(LISTENING_PATH.read_text())
 
 
 def summary(data: dict) -> dict:
@@ -146,7 +151,7 @@ def plot_overview(data: dict, stats: dict) -> None:
                  x=0.01, ha="left", fontsize=16, fontweight="bold")
     fig.text(0.01, 0.015,
              "Source: docs/benchmarks/blind6_mapping.json (same_codec blind6 fixtures). "
-             "No saved listener votes were present; this is objective quality, not human preference. "
+             "Objective metrics only; the saved single-listener ranking is shown separately. "
              "Stars are means; dashed lines are means.",
              fontsize=8, color="#555555")
     fig.savefig(OUT_DIR / "blind6-overview.png", dpi=160, facecolor="white")
@@ -227,21 +232,133 @@ def plot_wins(stats: dict) -> None:
     ax.spines[["top", "right"]].set_visible(False)
     fig.text(0.02, 0.03,
              "Direction: SI-SDR/SNR/ICC/side-mid higher is better; MR-STFT/log-mel lower is better. "
-             "Objective only; no human votes in blind6.",
+             "Objective metrics only; see blind6-listening-results.png for the single-listener result.",
              fontsize=8, color="#555555")
     fig.savefig(OUT_DIR / "blind6-metric-wins.png", dpi=160, facecolor="white")
     plt.close(fig)
     print("wrote docs/images/blind6-metric-wins.png")
 
 
+def plot_listening(listening: dict) -> None:
+    order = ["spectrum", "sage", "same"]
+    scores = listening["scores"]
+    points = [scores[c]["points"] for c in order]
+    first = [scores[c]["first"] for c in order]
+    second = [scores[c]["second"] for c in order]
+    third = [scores[c]["third"] for c in order]
+    names = [LABELS[c] for c in order]
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.8, 6.4), facecolor="white")
+    fig.subplots_adjust(left=0.18, right=0.98, bottom=0.16, top=0.84, wspace=0.38)
+
+    ax = axes[0]
+    bars = ax.barh(names, points, color=[COLORS[c] for c in order], height=0.55)
+    ax.set_xlim(0, 92)
+    ax.set_xlabel("listening points (3 / 2 / 1 per trial)")
+    ax.set_title("Points: 80 · 77 · 37", loc="left", fontweight="bold")
+    for bar, value in zip(bars, points):
+        ax.text(value + 1.5, bar.get_y() + bar.get_height() / 2, f"{value}",
+                va="center", fontsize=13, fontweight="bold")
+    ax.invert_yaxis()
+    ax.grid(axis="x", alpha=0.18)
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+
+    ax = axes[1]
+    y = list(range(len(order)))
+    left = [0.0] * len(order)
+    rank_data = [
+        ("1st", first, "#222222"),
+        ("2nd", second, "#777777"),
+        ("3rd", third, "#C9C9C9"),
+    ]
+    for label, values, color in rank_data:
+        bars = ax.barh(y, values, left=left, color=color, height=0.55, label=label,
+                       edgecolor="white", linewidth=0.8)
+        for bar, value, base in zip(bars, values, left):
+            if value:
+                ax.text(base + value / 2, bar.get_y() + bar.get_height() / 2,
+                        f"{value}", ha="center", va="center", fontsize=9,
+                        color="white" if color == "#222222" else "#222222",
+                        fontweight="bold")
+        left = [a + b for a, b in zip(left, values)]
+    ax.set_yticks(y)
+    ax.set_yticklabels(names)
+    ax.set_xlim(0, 30)
+    ax.set_xlabel("trials (first / second / third)")
+    ax.set_title("Rank distribution", loc="left", fontweight="bold")
+    ax.invert_yaxis()
+    ax.legend(frameon=False, ncol=3, loc="lower right", fontsize=9)
+    ax.grid(axis="x", alpha=0.18)
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+
+    fig.suptitle("Blind6 listening result: SpectroStream 80, SAGE 77, SAME-S 37",
+                 x=0.01, ha="left", fontsize=16, fontweight="bold")
+    fig.text(0.01, 0.02,
+             "One saved listener session, 30 six-second trials, points 3/2/1; ties allowed. "
+             "First places are tied at 20/20; SpectroStream wins on second places (10 vs 7). "
+             "Single-listener result, not a population study.",
+             fontsize=8, color="#555555")
+    fig.savefig(OUT_DIR / "blind6-listening-results.png", dpi=160, facecolor="white")
+    plt.close(fig)
+    print("wrote docs/images/blind6-listening-results.png")
+
+
+def plot_points_by_track(listening: dict) -> None:
+    track_order = ["t027", "t064", "t082", "t116", "umbrella"]
+    track_names = {
+        "t027": "Folk #27",
+        "t064": "Metal #64",
+        "t082": "Pop #82",
+        "t116": "Hip-Hop #116",
+        "umbrella": "Umbrella (pop)",
+    }
+    order = ["spectrum", "sage", "same"]
+    fig, ax = plt.subplots(figsize=(10.8, 5.6), facecolor="white")
+    fig.subplots_adjust(left=0.24, right=0.98, bottom=0.16, top=0.84)
+    y = list(range(len(track_order)))
+    left = [0.0] * len(track_order)
+    for codec in order:
+        values = [listening["points_by_track"][t][codec] for t in track_order]
+        bars = ax.barh(y, values, left=left, color=COLORS[codec], height=0.55,
+                       label=LABELS[codec])
+        for bar, value, base in zip(bars, values, left):
+            if value >= 3:
+                ax.text(base + value / 2, bar.get_y() + bar.get_height() / 2,
+                        f"{value}", ha="center", va="center", fontsize=8,
+                        color="white", fontweight="bold")
+        left = [a + b for a, b in zip(left, values)]
+    ax.set_yticks(y)
+    ax.set_yticklabels([track_names[t] for t in track_order])
+    ax.invert_yaxis()
+    ax.set_xlim(0, 54)
+    ax.set_xlabel("listening points across 6 trials (max 18 per codec)")
+    ax.set_title("Listening points by track", loc="left", fontweight="bold")
+    ax.legend(frameon=False, ncol=3, loc="lower right", fontsize=9)
+    ax.grid(axis="x", alpha=0.18)
+    ax.set_axisbelow(True)
+    ax.spines[["top", "right"]].set_visible(False)
+    fig.text(0.02, 0.03,
+             "Each track contributes 6 trials; points 3/2/1 with ties allowed. "
+             "SpectroStream leads two tracks, SAGE leads two, Pop #82 is tied.",
+             fontsize=8, color="#555555")
+    fig.savefig(OUT_DIR / "blind6-points-by-track.png", dpi=160, facecolor="white")
+    plt.close(fig)
+    print("wrote docs/images/blind6-points-by-track.png")
+
+
 def main() -> int:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     data = load()
+    listening = load_listening()
     stats = summary(data)
     SUMMARY_PATH.write_text(json.dumps(stats, indent=2) + "\n")
     plot_overview(data, stats)
     plot_distributions(data)
     plot_wins(stats)
+    plot_listening(listening)
+    plot_points_by_track(listening)
     print(f"wrote {SUMMARY_PATH.relative_to(ROOT)}")
     return 0
 

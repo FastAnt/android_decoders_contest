@@ -40,21 +40,25 @@ SAME-S pays one 11.15 s window, SAGE needs two 2.97 s windows for 4 s, and
 SpectroStream needs four 1 s blocks. On one core with two threads,
 SpectroStream cannot sustain 4 s of playback; with more threads it can.
 
-### Quality: no single winner
+### Quality: listener result vs objective metrics
 
-The `blind6` fixtures contain 30 six-second trials from five tracks. Objective
-metrics split cleanly:
+One saved listener session ranked 30 six-second trials (3/2/1 points):
 
-- **SAME-S** wins SI-SDR and waveform SNR in all 30 trials.
-- **SpectroStream** wins MR-STFT, log-mel, and ICC in all 30 trials.
-- **SAGE** is generally between or below them on these metrics.
+| Place | Codec | Points | 1st / 2nd / 3rd |
+|---:|---|---:|---|
+| **1** | **SpectroStream** | **80** | 20 / 10 / 0 |
+| **2** | **SAGE** | **77** | 20 / 7 / 3 |
+| **3** | **SAME-S** | **37** | 2 / 3 / 25 |
 
-![Blind6 objective overview](docs/images/blind6-overview.png)
+First places are tied 20/20; SpectroStream wins on second places. This is one
+listener, not a population study.
 
-That trade-off — waveform fidelity vs spectral/perceptual similarity — is the
-main quality finding. The `blind6` artifact contains the trial mapping and the
-objective metrics but **no saved human rankings**, so the charts are not listener
-votes; see [blind6 analysis](docs/blind6-analysis.md) for the data and caveats.
+![Blind6 listening result](docs/images/blind6-listening-results.png)
+
+Objective metrics tell a different story: SAME-S wins SI-SDR and waveform SNR in
+all 30 trials, while SpectroStream wins MR-STFT, log-mel, and ICC in all 30.
+That waveform-vs-spectral trade-off is exactly why the benchmark reports both
+families and a listening result. See [blind6 analysis](docs/blind6-analysis.md).
 
 ### Codec profiles
 
@@ -144,8 +148,7 @@ Codec-specific material:
 
 - [SpectroStream architecture](decoder_cpp/docs/architecture.md),
   [SST format](decoder_cpp/docs/sst_format.md)
-- [SAME-S device report](docs/same-s-device-report.md),
-  [SAME-S integration plan](docs/same-s-integration-plan.ru.md)
+- [SAME-S device report](docs/same-s-device-report.md)
 - SAGE decoder/bridge sources:
   `client_android/android/app/src/main/kotlin/com/sagecodec/`
 
@@ -185,14 +188,19 @@ Reports:
 
 ## Quality and listening
 
-The `blind6` data is a set of 30 six-second trials with objective segment
-metrics. It is useful for comparing waveform and spectral fidelity, but it is
-**not** a substitute for human preference: no listener rankings were saved in
-the artifact. If you run the blind page and export its rankings, the charts can
-be extended with first-place counts and mean ranks.
+The saved blind6 session is a single-listener directional result: SpectroStream
+80, SAGE 77, SAME-S 37. It is not a population study. The per-track scores are
+mixed, and objective waveform/spectral metrics disagree, so treat the ranking as
+one data point rather than a universal verdict.
 
-See [blind6 analysis](docs/blind6-analysis.md) and the
-[raw summary](docs/benchmarks/blind6_summary.json).
+See [blind6 analysis](docs/blind6-analysis.md), the
+[listening result](docs/benchmarks/blind6_listening_results.json), and the
+[objective summary](docs/benchmarks/blind6_summary.json).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for benchmark PR requirements, the
+new-codec checklist, and the data/privacy policy.
 
 ## Licensing
 
