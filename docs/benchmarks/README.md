@@ -1,7 +1,7 @@
 # Android benchmark data
 
 This directory contains the raw values and plotting scripts for the
-performance, 4 s decode, and blind6 quality analyses.
+performance, 4 s decode, and blind6 listening/quality analyses.
 
 ## Files
 
