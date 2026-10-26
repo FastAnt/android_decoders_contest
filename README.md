@@ -103,6 +103,9 @@ Two integration styles are intentionally included:
 ## Quick start
 
 ```bash
+# Runtime decoders (not in Git; verifies SHA-256)
+./scripts/fetch_models.sh
+
 # Python encoder / model export environment
 cd encoder_service
 python3.12 -m venv .venv
@@ -115,12 +118,8 @@ mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . -j"$(nproc)"
 
-# Runtime decoders (not in Git; verifies SHA-256)
-cd ../..
-./scripts/fetch_models.sh
-
 # Flutter client
-cd client_android
+cd ../../client_android
 flutter pub get
 flutter analyze
 flutter test
