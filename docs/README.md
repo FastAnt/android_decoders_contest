@@ -8,6 +8,8 @@ running neural music codecs on Android edge devices.
 - [Project README](../README.md) — benchmark overview, results, quick start.
 - [Android codec guide](android-codec-guide.md) — implementation patterns,
   asset packaging, threading, audio, measurement, and a codec-addition checklist.
+- [Model downloads](model-download.md) — SAGE and SAME-S runtime decoders,
+  checksums, and release links.
 - [Setup](setup.md) — Python environment, source weights, C++ dependencies.
 - [Round-trip](roundtrip.md) — audio → SST → WAV.
 - [Model export](model-export.md) — source weights → Android runtime assets.

@@ -70,7 +70,7 @@ families and a listening result. See [blind6 analysis](docs/blind6-analysis.md).
 | Bitrate | 16.1 kbit/s | 10.3 kbit/s | 20.6 kbit/s |
 | Decoder | C++/FFI, TFLite/XNNPACK, iSTFT | Kotlin, LiteRT, SageDsp | Kotlin, LiteRT |
 | Window / block | 1 s | 2.97 s core | 11.15 s |
-| Model size in app | f25 core ~143 MB + codebooks | 59.2 MB | 81.5 MB |
+| Model download | f25 core ~143 MB + codebooks | 59.2 MB | 81.5 MB |
 | App-level PSS (S25) | 1 070 MB | 1 120 MB | 608–656 MB |
 | Weight license | CC-BY-4.0 (not redistributed) | CC BY-NC-SA 4.0 | Stability AI Community License |
 
@@ -115,8 +115,12 @@ mkdir -p build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . -j"$(nproc)"
 
+# Runtime decoders (not in Git; verifies SHA-256)
+cd ../..
+./scripts/fetch_models.sh
+
 # Flutter client
-cd ../../client_android
+cd client_android
 flutter pub get
 flutter analyze
 flutter test
@@ -124,10 +128,12 @@ flutter build apk --debug
 adb install -r -t build/app/outputs/flutter-apk/app-debug.apk
 ```
 
-Preparing the SpectroStream TFLite/codebooks/window and the SAME-S model is
-described in [setup](docs/setup.md), [model export](docs/model-export.md), and
-[client prerequisites](client_android/README.md). The SAME-S demo `.same` and
-decoder are included; the 81.5 MB model is in Git for this benchmark.
+The SAGE and SAME-S runtime decoders are downloaded with
+`./scripts/fetch_models.sh`; see [model downloads](docs/model-download.md) for
+links, sizes, and checksums. The SAME-S demo `.same` is included. The
+SpectroStream TFLite/codebooks/window are not in Git; see
+[setup](docs/setup.md), [model export](docs/model-export.md), and
+[client prerequisites](client_android/README.md).
 
 ## Implementation guide
 
@@ -181,7 +187,10 @@ Reports:
 - `encoder_service/` — Python batch encoder and model exporters.
 - `decoder_cpp/` — SpectroStream C++ runtime, CLI, C API, tests, Android build.
 - `client_android/` — Flutter app, Kotlin bridges, assets, on-device UI.
-- `docs/` — setup, implementation guide, benchmark reports, charts, licenses.
+- `docs/` — setup, implementation guide, model downloads, benchmark reports,
+  charts, licenses.
+- `scripts/fetch_models.sh` — downloads the two runtime decoders and verifies
+  their SHA-256 checksums.
 - `media/` — local source media and reference WAVs (not in Git).
 - `models/` — cache of source Magenta RealTime SavedModels.
 - `decoder_cpp/models/` — exported SpectroStream runtime assets.

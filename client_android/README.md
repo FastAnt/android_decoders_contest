@@ -16,7 +16,9 @@ new SDK may update dependencies pinned by Flutter itself; review such changes
 and commit them separately from documentation changes.
 
 Flutter/Android sources and the Gradle Wrapper are stored in Git. Models and
-native `.so` files must be prepared before building:
+native `.so` files must be prepared before building. Run
+`../scripts/fetch_models.sh` from the repository root to download the SAGE and
+SAME-S decoders (see [../docs/model-download.md](../docs/model-download.md)).
 
 - `assets/audio/demo.mp3`, `assets/spectrostream/demo.sst`,
   `assets/sage/demo.sage`, and `assets/same/demo.same` — a small generated demo
@@ -29,14 +31,14 @@ native `.so` files must be prepared before building:
   `istft_window_f960.f32`. These files are **not tracked in Git**: export them
   as described in [../docs/model-export.md](../docs/model-export.md) and copy
   them here.
-- `assets/sage/` — `dec_w8a8.tflite` (SAGE rung 128, int8) is included under
-  **CC BY-NC-SA 4.0**, not Apache-2.0. See
+- `assets/sage/` — `dec_w8a8.tflite` (SAGE rung 128, int8) is downloaded from
+  the `models-v1` release and is under **CC BY-NC-SA 4.0**, not Apache-2.0. See
   [assets/sage/README.md](assets/sage/README.md) and
-  [../WEIGHTS.md](../WEIGHTS.md) for attribution and terms. `demo.sage` is also
+  [../WEIGHTS.md](../WEIGHTS.md) for attribution and terms. `demo.sage` is
   included. SAGE uses `com.google.ai.edge.litert:litert:2.3.0` and Kotlin 2.4.
-- `assets/same/` — `dec_w8a8_s128.tflite` (SAME-S rung 128, W8A8) and
-  `demo.same`. The weights are included under the **Stability AI Community
-  License**, not Apache-2.0; see
+- `assets/same/` — `dec_w8a8_s128.tflite` (SAME-S rung 128, W8A8) is downloaded
+  from the `models-v1` release; `demo.same` is included. The weights are under
+  the **Stability AI Community License**, not Apache-2.0; see
   [assets/same/README.md](assets/same/README.md) and
   [../WEIGHTS.md](../WEIGHTS.md). “Powered by Stability AI.”
 - `android/app/src/main/jniLibs/arm64-v8a/` — `libspectrostream_decoder.so`

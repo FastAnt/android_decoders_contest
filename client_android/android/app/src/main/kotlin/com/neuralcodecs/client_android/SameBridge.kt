@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 FastAnt
 package com.neuralcodecs.client_android
 
 import android.content.Context

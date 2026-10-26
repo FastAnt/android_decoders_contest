@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 FastAnt
 // Vendored from the same_codec Android decoder
 // (android_decoder/src/main/java/com/samecodec/decoder/SameDecoder.kt; upstream
 // SHA-256 036762de91478dd244974fc737cdd54a02071589164c71374bc79b68dba5c5ae).

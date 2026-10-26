@@ -1,14 +1,15 @@
 # Model weights and licenses
 
-This repository contains **code** and **two model weight files** with different
-licenses. The root [LICENSE](LICENSE) (Apache-2.0) covers the original code and
+This repository contains **code** and **two downloadable model weight files**
+with different licenses. The root [LICENSE](LICENSE) (Apache-2.0) covers the original code and
 documentation only. It does **not** cover the SAGE or SAME-S model weights.
 
-## Included: SAGE rung-128 decoder
+## Download: SAGE rung-128 decoder
 
 | Field | Value |
 |---|---|
 | File | `client_android/assets/sage/dec_w8a8.tflite` |
+| Download | [GitHub Release `models-v1`](https://github.com/FastAnt/android_decoders_contest/releases/download/models-v1/sage_r128_dec_w8a8.tflite) |
 | Size | 59,154,272 bytes |
 | SHA-256 | `d173b21e34b12e4be163741918bbd56870e16464f3d6d8592659d1855e88daa4` |
 | Original work | `SAGE_FTe992` by Francesco Brigante |
@@ -21,6 +22,9 @@ LiteRT/TFLite inference model for this project: int8 weights, fixed rung 128,
 and a sliced post-net for the Android decoder. The TFLite export is an
 adaptation of the original model and is distributed under the same
 CC BY-NC-SA 4.0 terms.
+
+Download with `./scripts/fetch_models.sh` or from the release link above. The
+file is not stored in Git.
 
 ### What the license means for these weights
 
@@ -36,11 +40,12 @@ CC BY-NC-SA 4.0 terms.
 This is a summary for repository hygiene, not legal advice. For a commercial
 use case, obtain the appropriate permission from the original rights holder.
 
-## Included: SAME-S s128 decoder
+## Download: SAME-S s128 decoder
 
 | Field | Value |
 |---|---|
 | File | `client_android/assets/same/dec_w8a8_s128.tflite` |
+| Download | [GitHub Release `models-v1`](https://github.com/FastAnt/android_decoders_contest/releases/download/models-v1/same_s_s128_dec_w8a8.tflite) |
 | Size | 81,517,872 bytes |
 | SHA-256 | `7802697d21c67968974c117626da42e55bf0dd250126e0be9a4cfe86245e0ef6` |
 | Original work | SAME-S by Stability AI |
@@ -62,6 +67,9 @@ This Stability AI Model is licensed under the Stability AI Community License,
 Copyright © Stability AI Ltd. All Rights Reserved.
 
 **Powered by Stability AI.**
+
+Download with `./scripts/fetch_models.sh` or from the release link above. The
+file is not stored in Git.
 
 ### What the license means for these weights
 

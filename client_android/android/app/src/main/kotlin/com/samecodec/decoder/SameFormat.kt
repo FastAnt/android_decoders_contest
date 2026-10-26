@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 FastAnt
 package com.samecodec.decoder
 
 import java.io.File

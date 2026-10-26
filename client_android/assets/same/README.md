@@ -3,7 +3,9 @@
 `dec_w8a8_s128.tflite` is the SAME-S decoder used by the Android client.
 It is a LiteRT/TFLite export of Stability AI's SAME-S model with int8 W8A8
 weights and only the `s128` signature (rung 128), which is the decoder window
-size used by the app.
+size used by the app. It is **not stored in Git**; download it with
+`./scripts/fetch_models.sh` or from the
+[`models-v1` release](https://github.com/FastAnt/android_decoders_contest/releases/download/models-v1/same_s_s128_dec_w8a8.tflite).
 
 - Original model: [`stabilityai/SAME-S`](https://huggingface.co/stabilityai/SAME-S),
   revision `63a63b7193ee9b6ee9836776c5f3c52a2f9600df`.

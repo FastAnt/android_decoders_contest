@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 FastAnt
 package com.neuralcodecs.client_android
 
 import io.flutter.embedding.android.FlutterActivity
